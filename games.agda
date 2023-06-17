@@ -305,10 +305,6 @@ nat-pred : ∀( n : ℕ ) → ℕ
 nat-pred zero = zero
 nat-pred (suc n) = n
 
-{-proof8 : ∀{ l₁ l₂ : List ℕ } { a b : ℕ } → a ≡ b →
-       list-eq (insert l₁ a) (insert l₂ b) → list-eq l₁ l₂
-proof8 {l₁}{l₂} a b = {!!}-}
-
 proof6 : ∀{ l₁ l₂ : List ℕ } { x : Fin (length l₁) } → list-eq l₁ l₂ → Σ (Fin (length l₂)) (λ f → nth l₂ f ≡ nth l₁ x)
 proof6 {l₁}{l₂}{x} n = {!!}
 
@@ -327,7 +323,6 @@ list-eq-del {l₁}{l₂}{x}{f} a b n | yes y = begin
             nat-pred (count l₂ n) ≡⟨ cong nat-pred (count-insert {l = l₂} (trans (sym y) (sym b))) ⟩
             count (del l₂ f) n ∎
 list-eq-del {l₁}{l₂}{x}{f} a b n | no p = begin
-            -- count-del-neq : { l : List ℕ } { f : Fin (length l)} { n : ℕ } → ¬ nth l f ≡ n → count l n ≡ count (del l f) n
             count (del l₁ x) n ≡⟨ sym (count-del-neq {l = l₁} p) ⟩
             count l₁ n ≡⟨ a n ⟩
             count l₂ n ≡⟨ count-del-neq {l = l₂} (neq-trans (sym b) p) ⟩
