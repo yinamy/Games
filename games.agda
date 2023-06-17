@@ -301,21 +301,62 @@ listequiv-eq {l₁ , l₂} (Game.end x) a n
        count l₂ n ∎
 listequiv-eq (Game.step m₁ (Game.step m₂ r)) a = let x = listequiv-eq r a in proof2 {m₁ = m₁} {m₂ = m₂} x
 
+nat-pred : ∀( n : ℕ ) → ℕ
+nat-pred zero = zero
+nat-pred (suc n) = n
 
+{-proof8 : ∀{ l₁ l₂ : List ℕ } { a b : ℕ } → a ≡ b →
+       list-eq (insert l₁ a) (insert l₂ b) → list-eq l₁ l₂
+proof8 {l₁}{l₂} a b = {!!}-}
+
+proof6 : ∀{ l₁ l₂ : List ℕ } { x : Fin (length l₁) } → list-eq l₁ l₂ → Σ (Fin (length l₂)) (λ f → nth l₂ f ≡ nth l₁ x)
+proof6 {l₁}{l₂}{x} n = {!!}
+
+proof5 : { l₁ l₂ : List ℕ } { x : Fin (length l₁) } → ¬ Σ (Fin (length l₂)) (λ f → nth l₂ f ≡ nth l₁ x) → ¬ (list-eq l₁ l₂)
+proof5 {l₁} {l₂} {x} a p = a (proof6 {l₁ = l₁}{l₂ = l₂} p)
+
+neq-trans : ∀{ a b n : ℕ } → a ≡ b → ¬ a ≡ n → ¬ b ≡ n
+neq-trans p q x = ⊥-elim (q (trans p x))
+
+list-eq-del : {l₁ l₂ : List ℕ } {x : Fin (length l₁)} {f : Fin (length l₂)} →
+            list-eq l₁ l₂ → nth l₂ f ≡ nth l₁ x → list-eq (del l₁ x) (del l₂ f)
+list-eq-del {l₁}{l₂}{x}{f} a b n with (nth l₁ x) ≟ n
+list-eq-del {l₁}{l₂}{x}{f} a b n | yes y = begin
+            count (del l₁ x) n ≡⟨ cong nat-pred (sym (count-insert {l = l₁} (sym y))) ⟩
+            nat-pred (count l₁ n) ≡⟨ cong nat-pred (a n) ⟩
+            nat-pred (count l₂ n) ≡⟨ cong nat-pred (count-insert {l = l₂} (trans (sym y) (sym b))) ⟩
+            count (del l₂ f) n ∎
+list-eq-del {l₁}{l₂}{x}{f} a b n | no p = begin
+            -- count-del-neq : { l : List ℕ } { f : Fin (length l)} { n : ℕ } → ¬ nth l f ≡ n → count l n ≡ count (del l f) n
+            count (del l₁ x) n ≡⟨ sym (count-del-neq {l = l₁} p) ⟩
+            count l₁ n ≡⟨ a n ⟩
+            count l₂ n ≡⟨ count-del-neq {l = l₂} (neq-trans (sym b) p) ⟩
+            count (del l₂ f) n ∎
+
+proof7 : { c : LC S } { m₁ : LM S c } { m₂ : LM D (update-C S c m₁) } → list-eq (proj₁ c) (proj₂ c) →
+       list-eq (proj₁ (update-C D (update-C S c m₁) m₂)) (proj₂ (update-C D (update-C S c m₁) m₂))
+proof7 {l₁ , l₂} {inj₁ x} {f , p} a = list-eq-del {l₁ = l₁} {l₂ = l₂} a p
+proof7 {l₁ , l₂} {inj₂ y} {f , p} a = list-eq-del {l₁ = l₁} {l₂ = l₂} a (sym p)
+
+-- in a list equivalence game, if S wins then the lists are not equal
+listequiv-neq : { c : LC S } → (r : Run S c) → win r ≡ S → ¬ (list-eq (proj₁ c) (proj₂ c))
+listequiv-neq {l₁ , l₂} (Game.step (inj₁ x₁) (Game.end x)) a n = proof5 {l₁ = l₁} {l₂ = l₂} x n
+listequiv-neq {l₁ , l₂} (Game.step (inj₂ y) (Game.end x)) a n = proof5 {l₁ = l₂} {l₂ = l₁} x (list-eq-sym {a = l₁} {b = l₂} n)
+listequiv-neq {c} (Game.step m₁ (Game.step m₂ r)) a n = listequiv-neq r a (proof7 {c = c} {m₁ = m₁} n)
 
 
 {--- if l₁ contains an element not in l₂, l₁ is not equal to l₂
-proof2 : { l₁ l₂ : List ℕ } { x : Fin (length l₁) } → ¬ Σ (Fin (length l₂)) (λ f → nth l₂ f ≡ nth l₁ x) → ¬ (l₁ ≡ l₂)
-proof2 {l₁} {.l₁} {x} a refl = a (x , refl)
+proof20 : { l₁ l₂ : List ℕ } { x : Fin (length l₁) } → ¬ Σ (Fin (length l₂)) (λ f → nth l₂ f ≡ nth l₁ x) → ¬ (l₁ ≡ l₂)
+proof20 {l₁} {.l₁} {x} a refl = a (x , refl)
 
-proof3 : { c : LC S } { m : LM S c } { m₁ : LM D (update-C S c m) } →
+proof30 : { c : LC S } { m : LM S c } { m₁ : LM D (update-C S c m) } →
   ¬ (proj₁ (update-C D (update-C S c m) m₁) ≡ proj₂ (update-C D (update-C S c m) m₁)) →
   ¬ (proj₁ c ≡ proj₂ c)
-proof3 {l₁ , l₂} {inj₁ x} {f , b} a = {!!}
-proof3 {fst , snd₁} {inj₂ y} {fst₁ , snd₂} a = {!!}
+proof30 {l₁ , l₂} {inj₁ x} {f , b} a = {!!}
+proof30 {fst , snd₁} {inj₂ y} {fst₁ , snd₂} a = {!!}
 
 -- >>> in a list equivalence game, if S wins then the lists must be inequal. <<<
-listequiv-eq : { c : LC S } {r : Run S c } → win r ≡ S → ¬ (proj₁ c ≡ proj₂ c)
-listequiv-eq {c} {Game.step (inj₁ x₁) (Game.end x)} a = proof2 x
-listequiv-eq {c} {Game.step (inj₂ y) (Game.end x)} a = λ p → proof2 x (sym p)
-listequiv-eq {c} {Game.step m (Game.step m₁ r)} a = let d = listequiv-eq {r = r} a in {!!}-}
+listequiv-eq0 : { c : LC S } {r : Run S c } → win r ≡ S → ¬ (proj₁ c ≡ proj₂ c)
+listequiv-eq0 {c} {Game.step (inj₁ x₁) (Game.end x)} a = proof20 x
+listequiv-eq0 {c} {Game.step (inj₂ y) (Game.end x)} a = λ p → proof20 x (sym p)
+listequiv-eq0 {c} {Game.step m (Game.step m₁ r)} a = let d = listequiv-eq0 {r = r} a in {!!} -}
