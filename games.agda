@@ -305,14 +305,50 @@ nat-pred : ∀( n : ℕ ) → ℕ
 nat-pred zero = zero
 nat-pred (suc n) = n
 
+neq-trans : ∀{ a b n : ℕ } → a ≡ b → ¬ a ≡ n → ¬ b ≡ n
+neq-trans p q x = ⊥-elim (q (trans p x))
+
+first-elem : (l : List ℕ) → ℕ
+-- this is bad, right?
+first-elem [] = zero
+first-elem (x ∷ l) = x
+
+nth-first-elem : (l : List ℕ) (f : Fin (length l)) → length l ≡ 1 → nth l f ≡ first-elem l
+nth-first-elem (x ∷ []) zero p = refl
+
+Σ-contains : ∀{ l : List ℕ } { n x : ℕ } →
+           Σ (Fin (length l)) (λ f → nth l f ≡ n) →  Σ (Fin (suc (length l))) (λ f → nth (insert l x) f ≡ n)
+Σ-contains {l} {n} {x} (fst , snd) = (suc fst) , snd
+
+proof9 : ∀{ l : List ℕ }{ n : ℕ } → ¬ ((count l n) ≡ zero) → Σ (Fin (length l)) (λ f → nth l f ≡ n)
+proof9 {[]} {n} p = ⊥-elim (p refl)
+proof9 {x ∷ l} {n} p with x ≟ n
+proof9 {x ∷ []} {n} p | yes y = zero , y
+proof9 {x ∷ x₁ ∷ l} {n} p | yes y = zero , y
+proof9 {x ∷ []} {n} p | no _ = ⊥-elim (p refl)
+proof9 {x ∷ x₁ ∷ l} {n} p | no z = Σ-contains (proof9 p)
+
+neq-head : { l₁ l₂ : List ℕ } { f₁ : Fin (length l₁)} {f₂ : Fin (length l₂)} { x n : ℕ } →
+         ¬ x ≡ n → l₁ ≡ insert l₂ x → n ≡ nth l₁ f₁ → n ≡ nth l₂ f₂
+neq-head {l₁} {l₂} {f₁} {f₂} {x} {n} a b c = {!!}
+
+proof10 :  ∀{ l : List ℕ }{ f : Fin (length l) } { n : ℕ } → n ≡ nth l f → ¬ ((count l n) ≡ zero)
+proof10 {x ∷ xs} {f} {n} p₁ p₂ with x ≟ n
+proof10 {x ∷ xs} {f} {n} p₁ () | yes _
+proof10 {x ∷ []} {f} {n} p₁ p₂ | no q = ⊥-elim (q (sym (trans p₁ (nth-first-elem (x ∷ []) f refl))))
+proof10 {x ∷ x₁ ∷ xs} {f} {n} p₁ p₂ | no q = proof10 {l = x₁ ∷ xs} {f = fromℕ (length xs)} {n = n}
+        ((neq-head {l₁ = x ∷ x₁ ∷ xs} {l₂ = x₁ ∷ xs} {f₁ = f} {f₂ = fromℕ (length xs)} q refl p₁)) p₂
+
+proof11 : ∀{ l₁ l₂ : List ℕ } { x : Fin (length l₁) } → list-eq l₁ l₂ → count l₁ (nth l₁ x) ≡ count l₂ (nth l₁ x)
+proof11 {l₁}{l₂}{x} p = list-subst {a = l₁}{b = l₂} p
+
 proof6 : ∀{ l₁ l₂ : List ℕ } { x : Fin (length l₁) } → list-eq l₁ l₂ → Σ (Fin (length l₂)) (λ f → nth l₂ f ≡ nth l₁ x)
-proof6 {l₁}{l₂}{x} n = {!!}
+proof6 {l₁} {l₂} {x} p = proof9 {l = l₂} (neq-trans {a = count l₁ (nth l₁ x)}
+       (proof11 {l₁ = l₁} {l₂ = l₂} p)
+       (proof10 {l = l₁}{f = x} refl))
 
 proof5 : { l₁ l₂ : List ℕ } { x : Fin (length l₁) } → ¬ Σ (Fin (length l₂)) (λ f → nth l₂ f ≡ nth l₁ x) → ¬ (list-eq l₁ l₂)
 proof5 {l₁} {l₂} {x} a p = a (proof6 {l₁ = l₁}{l₂ = l₂} p)
-
-neq-trans : ∀{ a b n : ℕ } → a ≡ b → ¬ a ≡ n → ¬ b ≡ n
-neq-trans p q x = ⊥-elim (q (trans p x))
 
 list-eq-del : {l₁ l₂ : List ℕ } {x : Fin (length l₁)} {f : Fin (length l₂)} →
             list-eq l₁ l₂ → nth l₂ f ≡ nth l₁ x → list-eq (del l₁ x) (del l₂ f)
