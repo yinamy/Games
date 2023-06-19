@@ -1,3 +1,5 @@
+{-# OPTIONS --guardedness #-}
+
 module games where
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Data.Nat using (ℕ; _≟_; zero; suc; s≤s; _<_)
@@ -10,6 +12,7 @@ open import Data.Sum
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality
 open import Data.Empty
+open import Codata.Musical.Notation
 
 -- The two players are S (spoiler), and D (duplicator)
 data Player : Set where
@@ -302,17 +305,21 @@ listequiv-eq {l₁ , l₂} (Game.end x) a n
        count l₂ n ∎
 listequiv-eq (Game.step m₁ (Game.step m₂ r)) a = let x = listequiv-eq r a in proof2 {m₁ = m₁} {m₂ = m₂} x
 
+-- defining pred on nats
 nat-pred : ∀( n : ℕ ) → ℕ
 nat-pred zero = zero
 nat-pred (suc n) = n
 
+-- poorly named but you get the idea
 neq-trans : ∀{ a b n : ℕ } → a ≡ b → ¬ a ≡ n → ¬ b ≡ n
 neq-trans p q x = ⊥-elim (q (trans p x))
 
+-- if a list contains an element, it also contains that element after you insert something
 Σ-contains : ∀{ l : List ℕ } { n x : ℕ } →
            Σ (Fin (length l)) (λ f → nth l f ≡ n) →  Σ (Fin (suc (length l))) (λ f → nth (insert l x) f ≡ n)
 Σ-contains {l} {n} {x} (fst , snd) = (suc fst) , snd
 
+-- if the count of an element isn't zero, then it exists in the list
 proof9 : ∀{ l : List ℕ }{ n : ℕ } → ¬ ((count l n) ≡ zero) → Σ (Fin (length l)) (λ f → nth l f ≡ n)
 proof9 {[]} {n} p = ⊥-elim (p refl)
 proof9 {x ∷ l} {n} p with x ≟ n
@@ -321,26 +328,28 @@ proof9 {x ∷ x₁ ∷ l} {n} p | yes y = zero , y
 proof9 {x ∷ []} {n} p | no _ = ⊥-elim (p refl)
 proof9 {x ∷ x₁ ∷ l} {n} p | no z = Σ-contains (proof9 p)
 
-peano : ∀ {m : ℕ} → ¬ (zero ≡ suc m)
-peano = λ()
-
 neq-zero : ∀{n x : ℕ} → n ≡ suc x → ¬ (n ≡ zero)
-neq-zero {n}{x} p = peano {m = x}
+neq-zero {n}{x} () refl
 
+-- if an element is nth in a list, the count of that element isn't zero
 proof10 : ∀{ l : List ℕ }{ f : Fin (length l) } { n : ℕ } → n ≡ nth l f → ¬ ((count l n) ≡ zero)
 proof10 {l}{f} p = neq-zero (count-insert {l = l}{f = f} p)
 
+-- if two lists are equal, their counts for any element in either list must be the same
 proof11 : ∀{ l₁ l₂ : List ℕ } { x : Fin (length l₁) } → list-eq l₁ l₂ → count l₁ (nth l₁ x) ≡ count l₂ (nth l₁ x)
 proof11 {l₁}{l₂}{x} p = list-subst {a = l₁}{b = l₂} p
 
+-- if two lists are equal, any element in the first list exists in the second list
 proof6 : ∀{ l₁ l₂ : List ℕ } { x : Fin (length l₁) } → list-eq l₁ l₂ → Σ (Fin (length l₂)) (λ f → nth l₂ f ≡ nth l₁ x)
 proof6 {l₁} {l₂} {x} p = proof9 {l = l₂} (neq-trans {a = count l₁ (nth l₁ x)}
        (proof11 {l₁ = l₁} {l₂ = l₂} p)
        (proof10 {l = l₁}{f = x} refl))
 
+-- if an element in l₁ doesn't exist in l₂, they are not equal
 proof5 : { l₁ l₂ : List ℕ } { x : Fin (length l₁) } → ¬ Σ (Fin (length l₂)) (λ f → nth l₂ f ≡ nth l₁ x) → ¬ (list-eq l₁ l₂)
 proof5 {l₁} {l₂} {x} a p = a (proof6 {l₁ = l₁}{l₂ = l₂} p)
 
+-- if two lists are equal, they're still equal after you delete the same element from each
 list-eq-del : {l₁ l₂ : List ℕ } {x : Fin (length l₁)} {f : Fin (length l₂)} →
             list-eq l₁ l₂ → nth l₂ f ≡ nth l₁ x → list-eq (del l₁ x) (del l₂ f)
 list-eq-del {l₁}{l₂}{x}{f} a b n with (nth l₁ x) ≟ n
@@ -355,6 +364,7 @@ list-eq-del {l₁}{l₂}{x}{f} a b n | no p = begin
             count l₂ n ≡⟨ count-del-neq {l = l₂} (neq-trans (sym b) p) ⟩
             count (del l₂ f) n ∎
 
+--
 proof7 : { c : LC S } { m₁ : LM S c } { m₂ : LM D (update-C S c m₁) } → list-eq (proj₁ c) (proj₂ c) →
        list-eq (proj₁ (update-C D (update-C S c m₁) m₂)) (proj₂ (update-C D (update-C S c m₁) m₂))
 proof7 {l₁ , l₂} {inj₁ x} {f , p} a = list-eq-del {l₁ = l₁} {l₂ = l₂} a p
@@ -366,6 +376,24 @@ listequiv-neq {l₁ , l₂} (Game.step (inj₁ x₁) (Game.end x)) a n = proof5 
 listequiv-neq {l₁ , l₂} (Game.step (inj₂ y) (Game.end x)) a n = proof5 {l₁ = l₂} {l₂ = l₁} x (list-eq-sym {a = l₁} {b = l₂} n)
 listequiv-neq {c} (Game.step m₁ (Game.step m₂ r)) a n = listequiv-neq r a (proof7 {c = c} {m₁ = m₁} n)
 
+
+data coℕ : Set where
+  zero : coℕ
+  suc  : ∞ coℕ → coℕ
+
+infty : coℕ
+infty = suc (♯ infty)
+
+add : coℕ → coℕ → coℕ
+add zero m = m
+add (suc x) m = suc (♯ add (♭ x) m)
+
+data _≈_ : coℕ → coℕ → Set where
+  zero≈ : zero ≈ zero
+  suc≈ : ∀{a b} → ∞ ( ♭ a ≈ ♭ b) → suc a ≈ suc b
+
+prove : ∀{n} → add infty n ≈ infty
+prove = suc≈ (♯ prove)
 
 {--- if l₁ contains an element not in l₂, l₁ is not equal to l₂
 proof20 : { l₁ l₂ : List ℕ } { x : Fin (length l₁) } → ¬ Σ (Fin (length l₂)) (λ f → nth l₂ f ≡ nth l₁ x) → ¬ (l₁ ≡ l₂)
