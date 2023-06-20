@@ -15,6 +15,7 @@ open import Codata.Musical.Notation
 open import Codata.Musical.Stream hiding (_≈_)
 open import Codata.Musical.Conat using (Coℕ; zero; suc)
 
+-- A generic game with finite or infinite runs --------------------------------
 
 -- The two players are S (spoiler), and D (duplicator)
 data Player : Set where
@@ -44,6 +45,18 @@ record Game (C : Player → Set) (M : (p : Player) → (c : C p) → Set) : Set 
          → S-Win (op p) (δ p c m) (♭ r)
          → S-Win p c (step m r)
 
+-- A stream equivalence game --------------------------------------------------
+
+-- A configuration for a stream equivalence game
+LC : Player → Set
+LC S = (Stream ℕ × Stream ℕ)
+LC D = (Stream ℕ × Stream ℕ × ℕ × Two)
+
+-- gets you the right stream at D's turn based on S's choice
+op-list : LC D → Two → Stream ℕ
+op-list a First = proj₁ (proj₂ a)
+op-list a Second = proj₁ a
+
 -- gets the nth element of a stream
 nth : Stream ℕ → ℕ → ℕ
 nth (x ∷ xs) zero = x
@@ -54,8 +67,25 @@ del : Stream ℕ → ℕ → Stream ℕ
 del (x ∷ xs) zero = ♭ xs
 del (x ∷ xs) (suc n) = x ∷ ♯ (del (♭ xs) n)
 
+-- A move in a stream equivalence game
+LM : (p : Player) → (c : LC p) → Set
+LM S (s₁ , s₂) = ℕ ⊎ ℕ
+LM D (s₁ , s₂ , x , First) = nth s₁ x ∈ s₂
+LM D (s₁ , s₂ , x , Second) = nth s₂ x ∈ s₁
+
+-- Updating a configuration when a move is made, and sending that configuration to the opposite player
+update-C : (p : Player) → (c : LC p) → (m : LM p c) → LC (op p)
+update-C S (s₁ , s₂) (inj₁ x) = (del s₁ x) , s₂ , (nth s₁ x) , First
+update-C S (s₁ , s₂) (inj₂ y) = s₁ , (del s₂ y) , (nth s₂ y) , Second
+update-C D (s₁ , s₂ , x , First) m = s₁ , del s₂ x
+update-C D (s₁ , s₂ , x , Second) m = del s₁ x , s₂
+
+
+-- Defining stream equivalence in a non-game way -------------------------------------
+
 -- Definition of stream equivalence
 infix 4 _≈_
+
 data _≈_ : Stream ℕ → Stream ℕ → Set where
   step : ∀{m n : ℕ} (A : Stream ℕ) (B : Stream ℕ)
        → nth A n ≡ nth B m
