@@ -6,6 +6,7 @@ open import Data.Nat using (ℕ; _≟_; zero; suc; s≤s; _<_)
 open import Data.Nat.Properties using (suc-injective)
 open import Data.List
 open import Agda.Builtin.Bool
+open import Data.Bool hiding (_≟_)
 open import Data.Product
 open import Data.Sum
 open import Relation.Nullary
@@ -41,7 +42,7 @@ record Game (C : Player → Set) (M : (p : Player) → (c : C p) → Set) : Set 
     -- winning conditions for S (omitting D winning because D-Win = ¬ S-Win)
   data S-Win : (p : Player) (c : C p) (r : Run p c) → Set where
     finished : ∀{p : Player}{c}{x} → S-Win D c (end x)
-    step : ∀{p}{c}{m}{r}
+    unfinished : ∀{p}{c}{m}{r}
          → S-Win (op p) (δ p c m) (♭ r)
          → S-Win p c (step m r)
 
@@ -70,8 +71,8 @@ del (x ∷ xs) (suc n) = x ∷ ♯ (del (♭ xs) n)
 -- A move in a stream equivalence game
 LM : (p : Player) → (c : LC p) → Set
 LM S (s₁ , s₂) = ℕ ⊎ ℕ
-LM D (s₁ , s₂ , x , First) = nth s₁ x ∈ s₂
-LM D (s₁ , s₂ , x , Second) = nth s₂ x ∈ s₁
+LM D (s₁ , s₂ , x , First) = Σ ℕ (λ n → x ≡ nth s₂ n)
+LM D (s₁ , s₂ , x , Second) = Σ ℕ (λ n → x ≡ nth s₁ n)
 
 -- Updating a configuration when a move is made, and sending that configuration to the opposite player
 update-C : (p : Player) → (c : LC p) → (m : LM p c) → LC (op p)
@@ -80,6 +81,10 @@ update-C S (s₁ , s₂) (inj₂ y) = s₁ , (del s₂ y) , (nth s₂ y) , Secon
 update-C D (s₁ , s₂ , x , First) m = s₁ , del s₂ x
 update-C D (s₁ , s₂ , x , Second) m = del s₁ x , s₂
 
+StreamEquivGame : Game LC LM
+StreamEquivGame = record {
+                δ = update-C
+                }
 
 -- Defining stream equivalence in a non-game way -------------------------------------
 
@@ -88,6 +93,32 @@ infix 4 _≈_
 
 data _≈_ : Stream ℕ → Stream ℕ → Set where
   step : ∀{m n : ℕ} (A : Stream ℕ) (B : Stream ℕ)
-       → nth A n ≡ nth B m
-       → ∞ (del A n ≈ del B n)
+       → nth A m ≡ nth B n
+       → ∞ (del A m ≈ del B n)
        → A ≈ B
+
+-- If S never wins the game, the streams are equal -----
+open Game StreamEquivGame
+open ≡-Reasoning
+
+--
+step-two-2 : { s₁ s₂ : Stream ℕ } { b : ℕ }
+         {r : Run D (s₁ , del s₂ b , nth s₂ b , Second)}
+         { w : ¬ (S-Win D (s₁ , del s₂ b , nth s₂ b , Second) r)}
+        → s₁ ≈ s₂
+step-two-2 {s₁} {s₂} {a} {Game.end x} {w} = ⊥-elim (w (Game.finished {p = D}))
+step-two-2 {s₁} {s₂} {a} {Game.step (p , q) x} {w} = step s₁ s₂ (sym q) {!!}
+
+--
+step-two-1 : { s₁ s₂ : Stream ℕ } { a : ℕ }
+         {r : (Run D (del s₁ a , s₂ , nth s₁ a , First))}
+         { w : ¬ (S-Win D (del s₁ a , s₂ , nth s₁ a , First) r)}
+        → s₁ ≈ s₂
+step-two-1 {s₁} {s₂} {a} {Game.end x} {w} = ⊥-elim (w (Game.finished {p = D}))
+step-two-1 {s₁} {s₂} {a} {Game.step (p , q) x} {w} = step {m = a} s₁ s₂ q {!!}
+
+-- if D wins, then the streams must be equivalent
+streamequiv-eq : { c : LC S } { r : Run S c } { w : ¬ (S-Win S c r) } → proj₁ c ≈ proj₂ c
+streamequiv-eq {s₁ , s₂} {Game.end x} {w} = ⊥-elim (x (inj₁ zero))
+streamequiv-eq {s₁ , s₂} {Game.step (inj₁ a) x} {w} = step-two-1 { a = a } { r = ♭ x }
+streamequiv-eq {s₁ , s₂} {Game.step (inj₂ b) x} {w} = step-two-2 { b = b } { r = ♭ x }
