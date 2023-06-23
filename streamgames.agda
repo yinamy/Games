@@ -117,19 +117,20 @@ step-two-1 : { s₁ s₂ : Stream ℕ } { a : ℕ }
 step-two-1 {s₁} {s₂} {a} {r₁} {Game.end x} {w} = ⊥-elim (x {!!})
 step-two-1 {s₁} {s₂} {a} {r₁} {Game.step (fst , snd) x} {w} = fst , snd
 
-test : { s₁ s₂ : Stream ℕ } { a  : ℕ }
+-- absolutely horrible!
+test : { s₁ s₂ : Stream ℕ } { a : ℕ }
          {r₁ : Run S (s₁ , s₂)}
          {r₂ : Run D (del s₁ a , s₂ , nth s₁ a , First)}
          { w : ¬ (S-Win S (s₁ , s₂) r₁)}
-         { p :   Σ ℕ (λ b → nth s₁ a ≡ nth s₂ b)}
-         → Run S (del s₁ a , del s₂ (proj₁ p))
-test {s₁} {s₂} {r₁} {r₂} {w} {p} = step ? ?
+         → Σ ℕ (λ b → ( (nth s₁ a ≡ nth s₂ b) × Run S (del s₁ a , del s₂ b)))
+test {s₁} {s₂} {a} {r₁} {Game.end x} {w} = {!!}
+test {s₁} {s₂} {a} {r₁} {Game.step m x} {w} = (proj₁ m) , ((proj₂ m) , (♭ x))
 
 -- if D wins, then the streams must be equivalent
 streamequiv-eq : { c : LC S } { r : Run S c } { w : ¬ (S-Win S c r) } → proj₁ c ≈ proj₂ c
 streamequiv-eq {s₁ , s₂} {Game.end x} {w} = ⊥-elim (x (inj₁ zero))
 streamequiv-eq {s₁ , s₂} {Game.step (inj₁ a) x} {w} =
-               step s₁ s₂ (proj₂ (step-two-1 {s₁ = s₁} {s₂ = s₂} {r₂ = ♭ x} {w = w}))
-               (♯ streamequiv-eq {r = test {s₁ = s₁} {r₂ = ♭ x} {w = w} {p = step-two-1 {s₁ = s₁} {s₂ = s₂} {r₂ = ♭ x} {w = w}}}
-                                      {w = neg-s-wins {s₁ = s₁} {w = w}})
+               step s₁ s₂
+                 (proj₁ (proj₂ (test {r₂ = ♭ x}{w = w})))
+                 (♯ (streamequiv-eq {r = proj₂ (proj₂ (test {r₂ = ♭ x}{w = w}))}{w = neg-s-wins {s₁ = s₁} {w = w}}))
 streamequiv-eq {s₁ , s₂} {Game.step (inj₂ b) x} {w} = {!!}
