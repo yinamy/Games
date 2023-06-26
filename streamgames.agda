@@ -41,7 +41,7 @@ record Game (C : Player → Set) (M : (p : Player) → (c : C p) → Set) : Set 
     step : (m : M p c) → ∞ (Run (op p) (δ p c m)) → Run p c
     -- winning conditions for S (omitting D winning because D-Win = ¬ S-Win)
   data S-Win : (p : Player) (c : C p) (r : Run p c) → Set where
-    finished : ∀{p : Player}{c}{x} → S-Win D c (end x)
+    finished : ∀{c}{x} → S-Win D c (end x)
     unfinished : ∀{p}{c}{m}{r}
          → S-Win (op p) (δ p c m) (♭ r)
          → S-Win p c (step m r)
@@ -106,8 +106,7 @@ w1 : { s₁ s₂ : Stream ℕ } { a b : ℕ } {r₁ : Run S (s₁ , s₂)}
            {r₂ : Run S (del s₁ a , del s₂ b)}
            { w : ¬ (S-Win S (s₁ , s₂) r₁) }
            → ¬ S-Win S (del s₁ a , del s₂ b) r₂
-w1 {s₁} {s₂} {a} {b} {r₁} {r₂} {w} = ⊥-elim (w {!!})
-
+w1 {s₁} {s₂} {a} {b} {r₁} {r₂} {w} = λ x → w {!Game.unfinished x!}
 
 w2 : { s₁ s₂ : Stream ℕ } { a : ℕ } {r₁ : Run S (s₁ , s₂)} {m : LM S (s₁ , s₂)}
            {r₂ :  Run D (del s₁ a , s₂ , nth s₁ a , First)}
@@ -115,21 +114,12 @@ w2 : { s₁ s₂ : Stream ℕ } { a : ℕ } {r₁ : Run S (s₁ , s₂)} {m : LM
            → ¬ S-Win D (del s₁ a , s₂ , nth s₁ a , First) r₂
 w2 {s₁}{s₂}{a}{r₁}{m}{r₂}{w} = λ x → ⊥-elim (w {!!})
 
--- absolutely horrible!
-second-step : { s₁ s₂ : Stream ℕ } { a : ℕ } { m : LM S (s₁ , s₂) }
-         {r₁ : Run S (s₁ , s₂)}
-         {r₂ : Run D (del s₁ a , s₂ , nth s₁ a , First)}
-         { w : ¬ (S-Win S (s₁ , s₂) r₁)}
-         → Σ ℕ (λ b → ( (nth s₁ a ≡ nth s₂ b) × Run S (del s₁ a , del s₂ b)))
-second-step {s₁} {s₂} {a} {m} {r₁} {Game.end x} {w} = ⊥-elim (w2 {a = a}{m = m}{w = w} (Game.finished {p = D}{x = x}))
-second-step {s₁} {s₂} {a} {m₂} {r₁} {Game.step m x} {w} = (proj₁ m) , ((proj₂ m) , (♭ x))
-
 -- if D wins, then the streams must be equivalent
 streamequiv-eq : { c : LC S } { r : Run S c } { w : ¬ (S-Win S c r) } → proj₁ c ≈ proj₂ c
 streamequiv-eq {s₁ , s₂} {Game.end x} {w} = ⊥-elim (x (inj₁ zero))
-streamequiv-eq {s₁ , s₂} {Game.step (inj₁ a) x} {w} =
-               step s₁ s₂
-                 (proj₁ (proj₂ (second-step {m = inj₁ a} {r₂ = ♭ x}{w = w})))
-                 (♯ (streamequiv-eq {r = proj₂ (proj₂ (second-step {m = inj₁ a}{r₂ = ♭ x}{w = w}))}
-                 ))
-streamequiv-eq {s₁ , s₂} {Game.step (inj₂ b) x} {w} = {!!}
+streamequiv-eq {s₁ , s₂} {Game.step (inj₁ a) x} {w} with ♭ x in eq
+... | Game.step m x′ = step s₁ s₂ (proj₂ m) (♯ streamequiv-eq {r = ♭ x′})
+... | Game.end x′ = ⊥-elim (w (Game.unfinished (subst (λ □ → S-Win D _ □) (sym eq) (Game.finished))))
+streamequiv-eq {s₁ , s₂} {Game.step (inj₂ a) x} {w} with ♭ x in eq
+... | Game.step m x′ = step s₁ s₂ (sym (proj₂ m)) {!!}
+... | Game.end x′ = ⊥-elim (w (Game.unfinished (subst (λ □ → S-Win D _ □) (sym eq) (Game.finished))))
