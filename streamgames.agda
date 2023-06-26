@@ -100,20 +100,16 @@ data _≈_ : Stream ℕ → Stream ℕ → Set where
 open Game StreamEquivGame
 open ≡-Reasoning
 
--- whar
-w1 : { s₁ s₂ : Stream ℕ } { a b : ℕ } {r₁ : Run S (s₁ , s₂)}
-           {r₂ : Run S (del s₁ a , del s₂ b)}
-           { w : ¬ (S-Win S (s₁ , s₂) r₁) }
-           → ¬ S-Win S (del s₁ a , del s₂ b) r₂
-w1 {s₁} {s₂} {a} {b} {r₁} {r₂} {w} = λ x → w {!Game.unfinished x!}
-
 -- if D wins, then the streams must be equivalent
 streamequiv-eq : { c : LC S } { r : Run S c } ( w : ¬ (S-Win S c r) ) → proj₁ c ≈ proj₂ c
 streamequiv-eq {s₁ , s₂} {Game.end x} w = ⊥-elim (x (inj₁ zero))
 streamequiv-eq {s₁ , s₂} {Game.step (inj₁ a) x} w with ♭ x in eq
 ... | Game.step m x′ = step s₁ s₂ (proj₂ m)
-                (♯ streamequiv-eq {r = ♭ x′} λ y → ⊥-elim (w (subst {!S-Win D _ _!} eq (Game.unfinished (Game.unfinished y)))))
-... | Game.end x′ = ⊥-elim (w (Game.unfinished (subst (λ □ → S-Win D _ □) (sym eq) Game.finished)))
+                (♯ streamequiv-eq {r = ♭ x′} λ y →
+                                  ⊥-elim (w (Game.unfinished (subst (λ □ → S-Win D _ □) (sym eq) (Game.unfinished y)))))
+... | Game.end x′ = ⊥-elim (w (Game.unfinished (subst (λ □ → S-Win D _ □) (sym eq) Game.finished) ))
 streamequiv-eq {s₁ , s₂} {Game.step (inj₂ a) x} w with ♭ x in eq
-... | Game.step m x′ = step s₁ s₂ (sym (proj₂ m)) (♯ streamequiv-eq {r = ♭ x′} {!!})
+... | Game.step m x′ = step s₁ s₂ (sym (proj₂ m))
+                (♯ streamequiv-eq {r = ♭ x′} λ y →
+                                  ⊥-elim (w (Game.unfinished (subst (λ □ → S-Win D _ □) (sym eq) (Game.unfinished y)))))
 ... | Game.end x′ = ⊥-elim (w (Game.unfinished (subst (λ □ → S-Win D _ □) (sym eq) (Game.finished))))
