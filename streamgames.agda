@@ -114,9 +114,17 @@ streamequiv-eq {s₁ , s₂} {Game.step (inj₂ a) x} w with ♭ x in eq
                                   ⊥-elim (w (Game.unfinished (subst (λ □ → S-Win D _ □) (sym eq) (Game.unfinished y)))))
 ... | Game.end x′ = ⊥-elim (w (Game.unfinished (subst (λ □ → S-Win D _ □) (sym eq) (Game.finished))))
 
+
+
+lemma : ∀{m n : ℕ} {A B : Stream ℕ}
+       → nth A m ≡ nth B n
+       → ¬ (del A m ≈ del B n)
+       → ¬ (A ≈ B)
+lemma = {!!}
 -- if S wins, then the streams must be not-equivalent
 streamequiv-neq : { c : LC S } { r : Run S c } ( w : S-Win S c r ) → ¬ (proj₁ c ≈ proj₂ c)
-streamequiv-neq {s₁ , s₂} {Game.step (inj₁ x₁) x} w with ♭ x in eq
-... | Game.end x′ = λ x₂ → ⊥-elim (x′ ({!x\!} , {!!}))
-... | Game.step m x′ = ?
-streamequiv-neq {s₁ , s₂} {Game.step (inj₂ y) x} w = {!!}
+streamequiv-neq' : {c : LC S }{ m : LM S c } { r : Run D (δ S c m) } ( w : S-Win D (δ S c m) r) → ¬ (proj₁ c ≈ proj₂ c)
+streamequiv-neq (Game.unfinished w) = streamequiv-neq' w
+streamequiv-neq' Game.finished = {!!}
+streamequiv-neq' {fst , snd} {inj₁ x} {(step m _)} (Game.unfinished w) = lemma (proj₂ m) (streamequiv-neq w)
+streamequiv-neq' {fst , snd} {inj₂ y} {(step m _)} (Game.unfinished w) = lemma (sym (proj₂ m)) (streamequiv-neq w)
