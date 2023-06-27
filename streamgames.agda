@@ -113,3 +113,10 @@ streamequiv-eq {s₁ , s₂} {Game.step (inj₂ a) x} w with ♭ x in eq
                 (♯ streamequiv-eq {r = ♭ x′} λ y →
                                   ⊥-elim (w (Game.unfinished (subst (λ □ → S-Win D _ □) (sym eq) (Game.unfinished y)))))
 ... | Game.end x′ = ⊥-elim (w (Game.unfinished (subst (λ □ → S-Win D _ □) (sym eq) (Game.finished))))
+
+-- if S wins, then the streams must be not-equivalent
+streamequiv-neq : { c : LC S } { r : Run S c } ( w : S-Win S c r ) → ¬ (proj₁ c ≈ proj₂ c)
+streamequiv-neq {s₁ , s₂} {Game.step (inj₁ x₁) x} w with ♭ x in eq
+... | Game.end x′ = λ x₂ → ⊥-elim (x′ ({!x\!} , {!!}))
+... | Game.step m x′ = ?
+streamequiv-neq {s₁ , s₂} {Game.step (inj₂ y) x} w = {!!}
