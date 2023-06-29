@@ -118,53 +118,47 @@ streamequiv-eq {s₁ , s₂} {Game.step (inj₂ a) x} w with ♭ x in eq
 ... | Game.end x′ = ⊥-elim (w (Game.unfinished (subst (λ □ → S-Win D _ □) (sym eq) (Game.finished))))
 
 lemma′ : ∀{m n : ℕ} {A B : Stream ℕ}
-       → nth A m ≡ nth B n
        → A ≈ B
+       → nth A m ≡ nth B n
        → del A m ≈ del B n
-lemma′ {m} {n} {A} {B} p (step .A .B x r) = step {!!} {!!} {!!} {!!}
-
+lemma′ = {!!}
 {-lemma′ {m₁}{n₁} (step {m₂}{n₂} _ _ x x₁) q with m₁ ≟ m₂ | n₁ ≟ n₂
 lemma′ {m₁}{n₁} (step {m₂}{n₂} _ _ x x₁) q | yes y | yes z = {!!}
 lemma′ {m₁}{n₁} (step {m₂}{n₂} _ _ x x₁) q | yes y | no z = {!!}
 lemma′ {m₁}{n₁} (step {m₂}{n₂} _ _ x x₁) q | no y  | yes z = {!!}
-lemma′ {m₁}{n₁}{A}{B} e@(step {m₂}{n₂} _ _ x x₁) q | no y  | no z = {!!}
--}
+lemma′ {m₁}{n₁}{A}{B} e@(step {m₂}{n₂} _ _ x x₁) q | no y  | no z = {!!}-}
 
 lemma : ∀{m n : ℕ} {A B : Stream ℕ}
        → nth A m ≡ nth B n
        → ¬ (del A m ≈ del B n)
        → ¬ (A ≈ B)
-lemma p q (step _ _ x r) = {! -m!}
+lemma p q e = ⊥-elim (q (lemma′ e p))
 
 prf′ : { c : LC S } { y : ℕ } → proj₁ c ≈ proj₂ c
      → Σ ℕ (λ n → nth (proj₂ c) y ≡ nth (proj₁ c) n)
 prf′ {c} {y} (step {m}{n} .(proj₁ c) .(proj₂ c) x x₁) = {!!}
 
+
 prf : { c : LC S } { x : ℕ } → proj₁ c ≈ proj₂ c
      → Σ ℕ (λ n → nth (proj₁ c) x ≡ nth (proj₂ c) n)
-prf {c} {x} e@(step {m} {n} .(proj₁ c) .(proj₂ c) b r) with m ≟ x
+prf {c}{x} p = {!!}
+
+
+{-prf {c} {x} e@(step {m} {n} .(proj₁ c) .(proj₂ c) b r) with m ≟ x
 ... | yes y = n , (begin
           nth (proj₁ c) x ≡⟨ (cong₂ nth {x = proj₁ c}) refl (sym y) ⟩
           nth (proj₁ c) m ≡⟨ b ⟩
           nth (proj₂ c) n ∎)
-... | no y = {!!}
+... | no y = prf {x = m} {!!}-}
+
 
 -- if S wins, then the streams must be not-equivalent
 streamequiv-neq : { c : LC S } { r : Run S c } ( w : S-Win S c r ) → ¬ (proj₁ c ≈ proj₂ c)
 streamequiv-neq' : {c : LC S }{ m : LM S c } { r : Run D (δ S c m) } ( w : S-Win D (δ S c m) r) → ¬ (proj₁ c ≈ proj₂ c)
 streamequiv-neq (Game.unfinished w) = streamequiv-neq' w
-streamequiv-neq' {c} {inj₁ x₂} {Game.end x} Game.finished e@(step {m₂}{n₂} .(proj₁ c) .(proj₂ c) x₁ r₂) with x₂ ≟ m₂
-... | yes y = x (n₂ , (begin
-          nth (proj₁ c) x₂ ≡⟨ (cong₂ nth {x = proj₁ c}) refl y ⟩
-          nth (proj₁ c) m₂ ≡⟨ x₁ ⟩
-          nth (proj₂ c) n₂ ∎))
-... | no z = ⊥-elim (x (prf e))
-streamequiv-neq' {c} {inj₂ x₂} {Game.end x} Game.finished z with (≈sym z) in eq
-... | (step {m₂}{n₂} .(proj₂ c) .(proj₁ c) x₁ x₃) with x₂ ≟ m₂
-... | yes y = x (n₂ , (begin
-          nth (proj₂ c) x₂ ≡⟨ (cong₂ nth {x = proj₂ c}) refl y ⟩
-          nth (proj₂ c) m₂ ≡⟨ x₁ ⟩
-          nth (proj₁ c) n₂ ∎))
-... | no y = ⊥-elim (x (prf′ z))
+streamequiv-neq' {c} {inj₁ x₂} {Game.end x} Game.finished p with p in eq
+... | y = ⊥-elim (x (prf y))
+streamequiv-neq' {c} {inj₂ x₂} {Game.end x} Game.finished p with p in eq
+... | y = ⊥-elim (x (prf′ y))
 streamequiv-neq' {fst , snd} {inj₁ x} {Game.step m _} (Game.unfinished w) = lemma (proj₂ m) (streamequiv-neq w)
 streamequiv-neq' {fst , snd} {inj₂ y} {(step m _)} (Game.unfinished w) = lemma (sym (proj₂ m)) (streamequiv-neq w)
