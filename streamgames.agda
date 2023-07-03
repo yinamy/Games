@@ -39,6 +39,17 @@ record Game (C : Player → Set) (M : (p : Player) → (c : C p) → Set) : Set 
   data Run (p : Player) (c : C p) : Set where
     end : (¬ M p c) → Run p c
     step : (m : M p c) → ∞ (Run (op p) (δ p c m)) → Run p c
+
+  data SWStrat : (p : Player) (c : C p) → Set where
+    end : ∀ {c} → (¬ M D c) → SWStrat D c
+    stepS : ∀{c} → (m : M S c) → SWStrat D (δ S c m) → SWStrat S c
+    stepD : ∀{c} → ((m : M D c) → SWStrat S (δ D c m)) → SWStrat D c
+
+  data DWStrat : (p : Player) (c : C p) → Set where
+    end : ∀ {c} → (¬ M S c) → DWStrat S c
+    stepD : ∀{c} → (m : M D c) → ∞ (DWStrat S (δ D c m)) → DWStrat D c
+    stepS : ∀{c} → (∀ (m : M S c) → DWStrat D (δ S c m)) → DWStrat S c
+
     -- winning conditions for S (omitting D winning because D-Win = ¬ S-Win)
   data S-Win : (p : Player) (c : C p) (r : Run p c) → Set where
     finished : ∀{c}{x} → S-Win D c (end x)
@@ -121,12 +132,11 @@ lemma′ : ∀{m n : ℕ} {A B : Stream ℕ}
        → A ≈ B
        → nth A m ≡ nth B n
        → del A m ≈ del B n
-lemma′ = {!!}
-{-lemma′ {m₁}{n₁} (step {m₂}{n₂} _ _ x x₁) q with m₁ ≟ m₂ | n₁ ≟ n₂
-lemma′ {m₁}{n₁} (step {m₂}{n₂} _ _ x x₁) q | yes y | yes z = {!!}
-lemma′ {m₁}{n₁} (step {m₂}{n₂} _ _ x x₁) q | yes y | no z = {!!}
-lemma′ {m₁}{n₁} (step {m₂}{n₂} _ _ x x₁) q | no y  | yes z = {!!}
-lemma′ {m₁}{n₁}{A}{B} e@(step {m₂}{n₂} _ _ x x₁) q | no y  | no z = {!!}-}
+lemma′ {m₁}{n₁} (step {m₂}{n₂} _ _ x x₁) q with m₁ ≟ m₂ | n₁ ≟ n₂
+lemma′ {m₁}{n₁} (step {m₂}{n₂} _ _ x x₁) q | yes refl | yes refl = ♭ x₁
+lemma′ {m₁}{n₁} (step {m₂}{n₂} _ _ x x₁) q | yes refl | no z = {!!}
+lemma′ {m₁}{n₁} (step {m₂}{n₂} _ _ x x₁) q | no y  | yes refl = {!!}
+lemma′ {m₁}{n₁}{A}{B} e@(step {m₂}{n₂} _ _ x x₁) q | no y  | no z = {!!}
 
 lemma : ∀{m n : ℕ} {A B : Stream ℕ}
        → nth A m ≡ nth B n
