@@ -51,11 +51,11 @@ record Game (C : Player → Set) (M : (p : Player) → (c : C p) → Set) : Set 
     stepS : ∀{c} → (∀ (m : M S c) → DWStrat D (δ S c m)) → DWStrat S c
 
     -- winning conditions for S (omitting D winning because D-Win = ¬ S-Win)
-  data S-Win : (p : Player) (c : C p) (r : Run p c) → Set where
+  {-data S-Win : (p : Player) (c : C p) (r : Run p c) → Set where
     finished : ∀{c}{x} → S-Win D c (end x)
     unfinished : ∀{p}{c}{m}{r}
          → S-Win (op p) (δ p c m) (♭ r)
-         → S-Win p c (step m r)
+         → S-Win p c (step m r)-}
 
 -- A stream equivalence game --------------------------------------------------
 
@@ -114,6 +114,16 @@ data _≈_ : Stream ℕ → Stream ℕ → Set where
 open Game StreamEquivGame
 open ≡-Reasoning
 
+-- If a winning strategy exists for D, then the streams must be equivalent
+streamequiv-eq : { c : LC S } { r : Run S c } ( w : DWStrat S c ) → proj₁ c ≈ proj₂ c
+streamequiv-eq {fst , snd} {Game.end x} w = ⊥-elim (x (inj₁ zero))
+streamequiv-eq {c} {Game.step (inj₁ x₁) x} w with ♭ x in eq
+... | Game.end x′ = ⊥-elim (x′ {!!})
+... | Game.step m x′ = {!!}
+streamequiv-eq {c} {Game.step (inj₂ y) x} w = {!!}
+
+
+{-
 -- if D wins, then the streams must be equivalent
 streamequiv-eq : { c : LC S } { r : Run S c } ( w : ¬ (S-Win S c r) ) → proj₁ c ≈ proj₂ c
 streamequiv-eq {s₁ , s₂} {Game.end x} w = ⊥-elim (x (inj₁ zero))
@@ -153,15 +163,6 @@ prf : { c : LC S } { x : ℕ } → proj₁ c ≈ proj₂ c
      → Σ ℕ (λ n → nth (proj₁ c) x ≡ nth (proj₂ c) n)
 prf {c}{x} p = {!!}
 
-
-{-prf {c} {x} e@(step {m} {n} .(proj₁ c) .(proj₂ c) b r) with m ≟ x
-... | yes y = n , (begin
-          nth (proj₁ c) x ≡⟨ (cong₂ nth {x = proj₁ c}) refl (sym y) ⟩
-          nth (proj₁ c) m ≡⟨ b ⟩
-          nth (proj₂ c) n ∎)
-... | no y = prf {x = m} {!!}-}
-
-
 -- if S wins, then the streams must be not-equivalent
 streamequiv-neq : { c : LC S } { r : Run S c } ( w : S-Win S c r ) → ¬ (proj₁ c ≈ proj₂ c)
 streamequiv-neq' : {c : LC S }{ m : LM S c } { r : Run D (δ S c m) } ( w : S-Win D (δ S c m) r) → ¬ (proj₁ c ≈ proj₂ c)
@@ -172,3 +173,4 @@ streamequiv-neq' {c} {inj₂ x₂} {Game.end x} Game.finished p with p in eq
 ... | y = ⊥-elim (x (prf′ y))
 streamequiv-neq' {fst , snd} {inj₁ x} {Game.step m _} (Game.unfinished w) = lemma (proj₂ m) (streamequiv-neq w)
 streamequiv-neq' {fst , snd} {inj₂ y} {(step m _)} (Game.unfinished w) = lemma (sym (proj₂ m)) (streamequiv-neq w)
+-}
