@@ -114,30 +114,21 @@ data _≈_ : Stream ℕ → Stream ℕ → Set where
 open Game StreamEquivGame
 open ≡-Reasoning
 
--- If there is a D-win strategy for the game, then there must exist some valid D-move after any S-move
-
-prf : { fst snd : Stream ℕ } { n : ℕ }
-    {m : Σ ℕ (λ n₁ → nth fst n ≡ nth snd n₁)} (m₁ : ℕ ⊎ ℕ)
-    → m₁ ≡ inj₁ n
-    → DWStrat D (update-C S (fst , snd) m₁)
-    → DWStrat S (del fst n , del snd (proj₁ m))
-prf {fst}{snd} m₁ p (Game.stepD m x) = {!cong₂ (♭ x) ? ?!}
---subst (λ x → (DWStrat S (update-C D (update-C S (fst , snd) x) _))) p (♭ x)
-
 -- If a winning strategy exists for D, then the streams must be equivalent
 streamequiv-eq : { c : LC S } { r : Run S c } ( w : DWStrat S c ) → proj₁ c ≈ proj₂ c
 streamequiv-eq {fst , snd} {Game.end x} w = ⊥-elim (x (inj₁ zero))
-streamequiv-eq {c} {Game.step (inj₁ n) x} (Game.end x₂) with ♭ x in eq
-... | Game.end x′ = ⊥-elim (x₂ (inj₁ zero))
-... | Game.step m x′ = ⊥-elim (x₂ (inj₁ zero))
-streamequiv-eq {fst , snd} {Game.step (inj₁ n) x} w@(Game.stepS x₂) with ♭ x in eq
+streamequiv-eq {c} {Game.step (inj₁ n) x} (Game.end x₂) = ⊥-elim (x₂ (inj₁ zero))
+streamequiv-eq {fst , snd} {Game.step (inj₁ n) x} (Game.stepS x₂) with ♭ x in eq
 ... | Game.end x′ with (x₂ (inj₁ n)) in hq
 ... | Game.stepD m y = ⊥-elim (x′ m)
-streamequiv-eq {fst , snd} {Game.step (inj₁ n) x} w@(Game.stepS x₂) | Game.step m x′ with (x₂ (inj₁ n)) in hq
-... | Game.stepD m y = step fst snd (proj₂ m) (♯ (streamequiv-eq ?))
-streamequiv-eq {c} {Game.step (inj₂ n) x} w = {!!}
-
-
+streamequiv-eq {fst , snd} {Game.step (inj₁ n) x} (Game.stepS x₂) | Game.step m x′ with (x₂ (inj₁ n)) in hq
+... | Game.stepD m y = step fst snd (proj₂ m) (♯ (streamequiv-eq {!!}))
+streamequiv-eq {c} {Game.step (inj₂ n) x} (Game.end x₁) = ⊥-elim (x₁ (inj₁ zero))
+streamequiv-eq {c} {Game.step (inj₂ n) x} (Game.stepS x₁) with ♭ x in eq
+... | Game.end x′ with (x₁ (inj₂ n)) in hq
+... | Game.stepD m y = ⊥-elim (x′ m)
+streamequiv-eq {c} {Game.step (inj₂ n) x} (Game.stepS x₁) | Game.step m x′ with (x₁ (inj₂ n)) in hq
+... | Game.stepD m y = {!!}
 {-
 -- if D wins, then the streams must be equivalent
 streamequiv-eq : { c : LC S } { r : Run S c } ( w : ¬ (S-Win S c r) ) → proj₁ c ≈ proj₂ c
