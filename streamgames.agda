@@ -50,16 +50,20 @@ record Game (C : Player → Set) (M : (p : Player) → (c : C p) → Set) : Set 
     stepD : ∀{c} → (m : M D c) → ∞ (DWStrat S (δ D c m)) → DWStrat D c
     stepS : ∀{c} → (∀ (m : M S c) → DWStrat D (δ S c m)) → DWStrat S c
 
-  -- law of the excluded middle (if there is an S-winning strategy there can't be one for D,
-  -- and vice versa)
+  -- law of the excluded middle (if there is an S-winning strategy there can't be one for D)
   exclMid : (p : Player) (c : C p) → SWStrat p c → ¬ (DWStrat p c)
   exclMid .D c (end x) (stepD m x₁) = x m
   exclMid .S c (stepS m (end x)) (end x₁) = x₁ m
   exclMid .S c (stepS m (end x)) (stepS x₁) with x₁ m
   ... | stepD m₁ x₂ = x m₁
   exclMid .S c (stepS m (stepD x)) (end x₁) = x₁ m
-  exclMid .S c (stepS m (stepD x)) p = {!!}
-  exclMid .D c (stepD x) (stepD m x₁) = {!!}
+  exclMid .S c (stepS m (stepD x)) (stepS x₁) with x₁ m
+  ... | stepD m₁ x₂ = exclMid S ((δ D (δ S c m) m₁)) (x m₁) (♭ x₂)
+  exclMid .D c (stepD x) (stepD m x₁) = exclMid S (δ D c m) (x m) (♭ x₁)
+
+  -- other law of the excluded middle (if there is an D-winning strategy there can't be one for S)
+  exclMid′ : (p : Player) (c : C p) → DWStrat p c → ¬ (SWStrat p c)
+  exclMid′ = ?
 
     -- winning conditions for S (omitting D winning because D-Win = ¬ S-Win)
   {-data S-Win : (p : Player) (c : C p) (r : Run p c) → Set where
