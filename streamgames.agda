@@ -135,6 +135,7 @@ streamequiv-eq' {fst , snd} (Game.stepS x) = record { delA = λ {n₁} → delA 
     ... | Game.stepD (m , p) x = m , p , ♯ streamequiv-eq' (♭ x)
 
 open _≈'_
+
 streamequiv-neq' : { c : LC S } ( w : SWStrat S c ) → ¬ (proj₁ c ≈' proj₂ c)
 streamequiv-neq' {fst , snd} (Game.stepS (inj₁ x₁) (Game.end x)) x₂ = x (let n , p₁ , p₂ = delA x₂ {x₁} in (n , p₁))
 streamequiv-neq' {fst , snd} (Game.stepS (inj₂ y) (Game.end x)) x₂ = x (let n , p₁ , p₂ = delB x₂ {y} in (n , p₁))
@@ -148,11 +149,6 @@ streamequiv-eq : { c : LC S } ( w : DWStrat S c ) → proj₁ c ≈ proj₂ c
 streamequiv-eq {fst , snd} (Game.end x) = ⊥-elim (x (inj₁ zero))
 streamequiv-eq {fst , snd} (Game.stepS x) with x (inj₁ zero)
 ... | Game.stepD (n , p) x₁ = step fst snd p (♯ streamequiv-eq (♭ x₁))
-
-streamequiv-neq : { c : LC S } ( w : SWStrat S c ) → ¬ (proj₁ c ≈ proj₂ c)
-streamequiv-neq {fst , snd} (Game.stepS (inj₁ x) (Game.end x₁)) = {!!}
-streamequiv-neq {fst , snd} (Game.stepS (inj₁ x) (Game.stepD x₁)) = {!!}
-streamequiv-neq {fst , snd} (Game.stepS (inj₂ y) w) = {!!}
 
 {--- If a winning strategy exists for D, then the streams must be equivalent
 streamequiv-eq : { c : LC S } { r : Run S c } ( w : DWStrat S c ) → proj₁ c ≈ proj₂ c
@@ -169,13 +165,9 @@ streamequiv-eq {c} {Game.step (inj₂ n) x} (Game.stepS x₁) with ♭ x in eq
 ... | Game.end x′ with (x₁ (inj₂ n)) in hq
 ... | Game.stepD m y = ⊥-elim (x′ m)
 streamequiv-eq {c} {Game.step (inj₂ n) x} (Game.stepS x₁) | Game.step m x′ with (x₁ (inj₂ n)) in hq
-... | Game.stepD m y = {!!}-}
+... | Game.stepD m y = {!!}
 
--- this looks familiar
-prf : { s₁ s₂ : Stream ℕ } { m : ℕ ⊎ ℕ } → s₁ ≈ s₂ → LM D (update-C S (s₁ , s₂) m)
-prf {s₁} {s₂} {m₁} (step {m}{n} .s₁ .s₂ x x₁) = {!!}
 
-{-
 --  If a winning strategy exists for S, then the streams must not be equivalent
 streamequiv-neq :  { c : LC S } { r : Run S c } ( w : SWStrat S c ) → ¬ proj₁ c ≈ proj₂ c
 streamequiv-neq {fst , snd} {Game.end x} w = ⊥-elim (x (inj₁ zero))
