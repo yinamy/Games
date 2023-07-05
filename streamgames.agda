@@ -63,7 +63,11 @@ record Game (C : Player → Set) (M : (p : Player) → (c : C p) → Set) : Set 
 
   -- other law of the excluded middle (if there is an D-winning strategy there can't be one for S)
   exclMid′ : (p : Player) (c : C p) → DWStrat p c → ¬ (SWStrat p c)
-  exclMid′ = ?
+  exclMid′ .S c (end x) (stepS m p) = x m
+  exclMid′ .D c (stepD m x) (end x₁) = x₁ m
+  exclMid′ .D c (stepD m x) (stepD x₁) with x₁ m
+  ... | stepS m₁ y = exclMid′ S (δ D c m) (♭ x) (x₁ m)
+  exclMid′ .S c (stepS x) (stepS m p) = exclMid′ D (δ S c m) (x m) p
 
     -- winning conditions for S (omitting D winning because D-Win = ¬ S-Win)
   {-data S-Win : (p : Player) (c : C p) (r : Run p c) → Set where
