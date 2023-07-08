@@ -12,6 +12,7 @@ open import Data.Empty
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality
 open import Codata.Musical.Notation
+open import Codata.Musical.Stream hiding (_≈_)
 
 -- A generic game with finite or infinite runs --------------------------------
 
@@ -59,13 +60,14 @@ record Game (C : Player → Set) (M : (p : Player) → (c : C p) → Set) : Set 
   exclMid′ .D c (stepD m x) (stepD x₁) = exclMid′ S (δ D c m) (♭ x) (x₁ m)
   exclMid′ .S c (stepS x) (stepS m p) = exclMid′ D (δ S c m) (x m) p
 
-
+-- A labelled transition system
 record LTS : Set₁ where
   field
     Q : Set
     A : Set
     _-⟨_⟩→_ : Q → A → Q → Set
 
+  -- Bisimulation
   record _≈_ (s t : Q) : Set where
     coinductive
     field
@@ -97,6 +99,7 @@ record LTS : Set₁ where
   open Game LTSBisimGame
   open _≈_
 
+-- If a D-winning strategy exists, a bisimulation exists between 2 states
   LTS-bisim : {c : BC S} (w : DWStrat S c) → proj₁ c ≈ proj₂ c
   d₁ (LTS-bisim {q₁ , q₂} (Game.end x)) = λ x₁ → ⊥-elim (x (inj₁ (_ , (_ , x₁))))
   d₂ (LTS-bisim {q₁ , q₂} (Game.end x)) = λ x₁ → ⊥-elim (x (inj₂ (_ , (_ , x₁))))
@@ -105,6 +108,7 @@ record LTS : Set₁ where
   d₂ (LTS-bisim {q₁ , q₂} (Game.stepS x)) t with x (inj₂ (_ , _ , t))
   ... | Game.stepD (q₁′ , t′) x′ = _ , t′ , LTS-bisim (♭ x′)
 
+-- If an S-winning strategy exists, a bisimulation does not exist between 2 states
   LTS-not-bisim : {c : BC S} (w : SWStrat S c) → ¬ (proj₁ c ≈ proj₂ c)
   LTS-not-bisim {q₁ , q₂} (Game.stepS (inj₁ (a , q₁′ , t)) (Game.end x)) p with d₁ p t
   ... | q₂′ , t′ , p′ = x (_ , t′)
@@ -114,3 +118,19 @@ record LTS : Set₁ where
   ... | q₂′ , t′ , p′ = LTS-not-bisim (x (_ , t′)) p′
   LTS-not-bisim {q₁ , q₂} (Game.stepS (inj₂ (a , q₂′ , t)) (Game.stepD x)) p with d₂ p t
   ... | q₁′ , t′ , p′ = LTS-not-bisim (x (_ , t′)) p′
+
+-- Instantiating our bisimulation game to a stream equivalence game
+
+-- A stream as an LTS
+StreamLTS : LTS
+StreamLTS = record
+  { Q = Stream ℕ
+  ; A = ℕ
+  ; _-⟨_⟩→_ = λ q a q′ → del q a ≡ q′
+  }
+    where
+      del : Stream ℕ → ℕ → Stream ℕ
+      del (x ∷ xs) zero = ♭ xs
+      del (x ∷ xs) (suc n) = x ∷ ♯ (del (♭ xs) n)
+
+open LTS StreamLTS
