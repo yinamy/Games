@@ -13,6 +13,7 @@ open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality
 open import Codata.Musical.Notation
 open import Codata.Musical.Colist
+open import Data.Maybe
 
 -- A generic game with finite or infinite runs --------------------------------
 
@@ -55,7 +56,7 @@ record Game (C : Player → Set) (M : (p : Player) → (c : C p) → Set) : Set�
     stepDInf : ∀{c} → (m : M D c) → ¬ (reward? c) → ∞ (SWStrat S (δ D c m)) → SWStrat D c
 
 
-
+-- A labelled transition system
 record LTS : Set₁ where
   field
     Q : Set
@@ -68,21 +69,23 @@ record LTS : Set₁ where
     _,_ : A → Q → Challenge
     τ,_ : Q → Challenge
 
-
+  -- Game configurations
   BC : Player → Set
   BC S = Q × Q × Challenge × Reward
   BC D = Q × Q × Challenge × Reward
 
+  -- The possible moves
   BM : (p : Player) (c : BC p) → Set
   BM S (q₁ , q₂ , c , r) = Σ A (λ a → Σ Q (λ q₁′ → q₁ -⟨ a ⟩→ q₁′ × Dec (c ≡ (a , q₁′))))
     ⊎  Σ A (λ a → Σ Q (λ q₂′ → q₂ -⟨ a ⟩→ q₂′ × Dec (c ≡ (a , q₂′))))
     ⊎  Σ Q (λ q₁′ → q₁ -⟨τ⟩→ q₁′ × Dec (c ≡ (τ, q₁′)))
     ⊎  Σ Q (λ q₂′ → q₂ -⟨τ⟩→ q₂′ × Dec (c ≡ (τ, q₂′)))
   BM D (q₁ , q₂ , † , r) =  ⊥
-  BM D (q₁ , q₂ , (a , x) , r) = {!!}
-  BM D (q₁ , q₂ , (τ, x) , r) = {!!}
+  BM D (q₁ , q₂ , (τ, x) , r) = Maybe (Σ Q (λ q₂′ → q₂ -⟨τ⟩→ q₂′))
+  BM D (q₁ , q₂ , (a , q₁′) , r) = Σ Q (λ q₂′ → q₂ -⟨ a ⟩→ q₂′)
+    ⊎ (Σ Q (λ q₂′ → q₂ -⟨τ⟩→ q₂′))
 
-
+  -- Updating the configuration after each move
   update-C : (p : Player) (c : BC p) (m : BM p c) → BC (op p)
   -- if S does not make a τ-move
   update-C S (q₁ , q₂ , c , r) (inj₁ (a , q₁′ , t , dec)) with dec in p
@@ -94,5 +97,11 @@ record LTS : Set₁ where
   ... | yes _ = q₁ , (q₂ , (c , ⋆))
   ... | no _ = q₁ , (q₂ , ((τ, q₁′) , ✓))
   update-C S (q₁ , q₂ , c , r) (inj₂ (inj₂ (inj₂ (q₂′ , t , dec)))) = q₂ , (q₁ , ((τ, q₂′) , ✓))
-  -- if S does make a τ-move
-  update-C D (q₁ , q₂ , c , r) m = {!!}
+  -- if D answers the challenge
+  update-C D (q₁ , q₂ , (a , q₁′) , r) (inj₁ (q₂′ , t)) = q₁′ , q₂′ , † , ✓
+  -- if D procrastinates the challenge by making a τ-move
+  update-C D (q₁ , q₂ , (a , q₁′) , r) (inj₂ (q₂′ , t)) = q₁ , q₂′ , (a , q₁′) , ⋆
+  -- if the challenge to D is a τ-move, D can either make a corresponding τ-move
+  update-C D (q₁ , q₂ , (τ, q₁′) , r) (just x) = {!!}
+  -- ... or D can do nothing
+  update-C D (q₁ , q₂ , (τ, q₁′) , r) nothing = {!!}
