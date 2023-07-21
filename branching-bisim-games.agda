@@ -5,6 +5,7 @@ module branching-bisim-games where
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Data.Nat using (ℕ; _≟_; zero; suc; s≤s; _<_)
 open import Agda.Builtin.Bool
+open import Agda.Builtin.Unit
 open import Data.Bool hiding (_≟_)
 open import Data.Product
 open import Data.Sum
@@ -82,6 +83,7 @@ record LTS : Set₁ where
     ⊎  Σ Q (λ q₂′ → q₂ -⟨τ⟩→ q₂′ × Dec (c ≡ (τ, q₂′)))
   BM D (q₁ , q₂ , † , r) =  ⊥
   BM D (q₁ , q₂ , (τ, x) , r) = Maybe (Σ Q (λ q₂′ → q₂ -⟨τ⟩→ q₂′))
+    ⊎ (Σ Q (λ q₂′ → q₂ -⟨τ⟩→ q₂′))
   BM D (q₁ , q₂ , (a , q₁′) , r) = Σ Q (λ q₂′ → q₂ -⟨ a ⟩→ q₂′)
     ⊎ (Σ Q (λ q₂′ → q₂ -⟨τ⟩→ q₂′))
 
@@ -102,6 +104,20 @@ record LTS : Set₁ where
   -- if D procrastinates the challenge by making a τ-move
   update-C D (q₁ , q₂ , (a , q₁′) , r) (inj₂ (q₂′ , t)) = q₁ , q₂′ , (a , q₁′) , ⋆
   -- if the challenge to D is a τ-move, D can either make a corresponding τ-move
-  update-C D (q₁ , q₂ , (τ, q₁′) , r) (just x) = {!!}
+  update-C D (q₁ , q₂ , (τ, q₁′) , r) (inj₁ (just (q₂′ , t))) = q₁′ , q₂′ , † , ✓
   -- ... or D can do nothing
-  update-C D (q₁ , q₂ , (τ, q₁′) , r) nothing = {!!}
+  update-C D (q₁ , q₂ , (τ, q₁′) , r) (inj₁ nothing) = q₁′ , q₂ , † , ✓
+  -- or D can still procrastinate by making a random τ-move
+  update-C D (q₁ , q₂ , (τ, q₁′) , r) (inj₂ (q₂′ , t)) = q₁ , q₂′ , (τ, q₁′) , ⋆
+
+  reward-C : {p : Player} → (c : BC p) → Set
+  reward-C {S} (_ , _ , _ , ✓) = ⊤
+  reward-C {S} (_ , _ , _ , ⋆) = ⊥
+  reward-C {D} (_ , _ , _ , ✓) = ⊤
+  reward-C {D} (_ , _ , _ , ⋆) = ⊥
+
+  BranchingBisimGame : Game BC BM
+  BranchingBisimGame = record
+                     { δ = update-C ;
+                       reward? = reward-C
+                     }
