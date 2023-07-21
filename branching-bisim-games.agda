@@ -74,22 +74,25 @@ record LTS : Set₁ where
   BC D = Q × Q × Challenge × Reward
 
   BM : (p : Player) (c : BC p) → Set
-  BM S (q₁ , q₂ , c , r) = Σ A (λ a → Σ Q (λ q₁′ → q₁ -⟨ a ⟩→ q₁′))
-    ⊎  Σ A (λ a → Σ Q (λ q₂′ → q₂ -⟨ a ⟩→ q₂′))
-    ⊎  Σ Q (λ q₁′ → q₁ -⟨τ⟩→ q₁′)
-    ⊎  Σ Q (λ q₂′ → q₂ -⟨τ⟩→ q₂′)
+  BM S (q₁ , q₂ , c , r) = Σ A (λ a → Σ Q (λ q₁′ → q₁ -⟨ a ⟩→ q₁′ × Dec (c ≡ (a , q₁′))))
+    ⊎  Σ A (λ a → Σ Q (λ q₂′ → q₂ -⟨ a ⟩→ q₂′ × Dec (c ≡ (a , q₂′))))
+    ⊎  Σ Q (λ q₁′ → q₁ -⟨τ⟩→ q₁′ × Dec (c ≡ (τ, q₁′)))
+    ⊎  Σ Q (λ q₂′ → q₂ -⟨τ⟩→ q₂′ × Dec (c ≡ (τ, q₂′)))
   BM D (q₁ , q₂ , † , r) =  ⊥
   BM D (q₁ , q₂ , (a , x) , r) = {!!}
   BM D (q₁ , q₂ , (τ, x) , r) = {!!}
 
 
- {- update-C : (p : Player) (c : BC p) (m : BM p c) → BC (op p)
+  update-C : (p : Player) (c : BC p) (m : BM p c) → BC (op p)
   -- if S does not make a τ-move
-  update-C S (q₁ , q₂ , r) (inj₁ (a , q₁′ , t , neq)) = q₁′ , q₂ , a , First , ✓
-  update-C S (q₁ , q₂ , r) (inj₂ (inj₂ (inj₁ (a , q₂′ , t , neq)))) = q₁ , q₂′ , a , Second , ✓
+  update-C S (q₁ , q₂ , c , r) (inj₁ (a , q₁′ , t , dec)) with dec in p
+  ... | yes _ = q₁ , (q₂ , (c , ⋆))
+  ... | no _ = q₁ , (q₂ , ((a , q₁′) , ✓))
+  update-C S (q₁ , q₂ , c , r) (inj₂ (inj₁ (a , q₂′ , t , dec))) = q₂ , (q₁ , ((a , q₂′) , ✓))
   -- if S makes a τ-move
-  update-C S (q₁ , q₂ , r) (inj₂ (inj₁ (a , q₁′ , t , eq))) = q₁ , q₂ , a , First , ⋆
-  update-C S (q₁ , q₂ , r) (inj₂ (inj₂ (inj₂ (a , q₂′ , t , eq)))) = q₁ , q₂ , a , Second , ⋆
-  -- if D is responding to a τ-move
-  update-C D (q₁ , q₂ , a , First , r) (q₂′ , _) = q₁ , q₂′ , ✓
-  update-C D (q₁ , q₂ , a , Second , r) (q₁′ , _) = q₁′ , q₂ , ✓-}
+  update-C S (q₁ , q₂ , c , r) (inj₂ (inj₂ (inj₁ (q₁′ , t , dec)))) with dec in p
+  ... | yes _ = q₁ , (q₂ , (c , ⋆))
+  ... | no _ = q₁ , (q₂ , ((τ, q₁′) , ✓))
+  update-C S (q₁ , q₂ , c , r) (inj₂ (inj₂ (inj₂ (q₂′ , t , dec)))) = q₂ , (q₁ , ((τ, q₂′) , ✓))
+  -- if S does make a τ-move
+  update-C D (q₁ , q₂ , c , r) m = {!!}
