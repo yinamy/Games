@@ -13,7 +13,6 @@ open import Data.Empty
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality
 open import Codata.Musical.Notation
-open import Codata.Musical.Colist
 open import Data.Maybe
 
 -- A generic game with finite or infinite runs --------------------------------
@@ -69,6 +68,29 @@ record LTS : Set₁ where
     † : Challenge
     _,_ : A → Q → Challenge
     τ,_ : Q → Challenge
+
+  -- Thing in Rob's deifnition of branching bisimulation that I need to use
+  data _⇒_ (s t : Q) : Set where
+    n=0 : s -⟨τ⟩→ t → s ⇒ t
+    n≥0 : ∃ (λ s₀ → s -⟨τ⟩→ s₀ × s₀ ⇒ t) → s ⇒ t
+
+  -- Branching bisimulation
+  record _≈_ (s t : Q) : Set where
+    coinductive
+    field
+      d₁ : ∀{s′}{a}
+        → s -⟨ a ⟩→ s′ ⊎ s -⟨τ⟩→ s′
+        → ∃ (λ t₁ → ∃ (λ t₂ → ∃ (λ t′
+          → t ⇒ t₁
+          → t₁ -⟨ a ⟩→ t₂ ⊎ t₁ -⟨τ⟩→ t₂
+          → t₂ ≡ t′ × (s ≈ t₁) × (s′ ≈ t′))))
+
+      d₂ : ∀{t′}{a}
+        → t -⟨ a ⟩→ t′ ⊎ t -⟨τ⟩→ t′
+        → ∃ (λ s₁ → ∃ (λ s₂ → ∃ (λ s′
+          → s ⇒ s₁
+          → s₁ -⟨ a ⟩→ s₂ ⊎ s₁ -⟨τ⟩→ s₂
+          → s₂ ≡ s′ × (s₁ ≈ t) × (s′ ≈ t′))))
 
   -- Game configurations
   BC : Player → Set
