@@ -70,27 +70,30 @@ record LTS : Set₁ where
     τ,_ : Q → Challenge
 
   -- Thing in Rob's deifnition of branching bisimulation that I need to use
-  data _⇒_ (s t : Q) : Set where
-    n=0 : s -⟨τ⟩→ t → s ⇒ t
-    n≥0 : ∃ (λ s₀ → s -⟨τ⟩→ s₀ × s₀ ⇒ t) → s ⇒ t
+  data _⇒_  : Q → Q → Set where
+    n=0 : {s : Q} → s ⇒ s
+    n≥0 : {s t s₀ : Q} → s -⟨τ⟩→ s₀ → s₀ ⇒ t → s ⇒ t
 
   -- Branching bisimulation
   record _≈_ (s t : Q) : Set where
     coinductive
     field
-      d₁ : ∀{s′}{a}
-        → s -⟨ a ⟩→ s′ ⊎ s -⟨τ⟩→ s′
-        → ∃ (λ t₁ → ∃ (λ t₂ → ∃ (λ t′
+      d₁-a : ∀{s′}{a}
+        → s -⟨ a ⟩→ s′
+        → ∃ (λ t₁ → ∃ (λ t′
           → t ⇒ t₁
-          → t₁ -⟨ a ⟩→ t₂ ⊎ t₁ -⟨τ⟩→ t₂
-          → t₂ ≡ t′ × (s ≈ t₁) × (s′ ≈ t′))))
-
-      d₂ : ∀{t′}{a}
-        → t -⟨ a ⟩→ t′ ⊎ t -⟨τ⟩→ t′
-        → ∃ (λ s₁ → ∃ (λ s₂ → ∃ (λ s′
+            × t₁ -⟨ a ⟩→ t′
+            × (s ≈ t₁) × (s′ ≈ t′)))
+      d₁-τ : ∀{s′}
+        → s -⟨τ⟩→ s′ → ∃ (λ t′ → t ⇒ t′ × (s′ ≈ t′))
+      d₂-a : ∀{t′}{a}
+        → t -⟨ a ⟩→ t′
+        → ∃ (λ s₁ → ∃ (λ s′
           → s ⇒ s₁
-          → s₁ -⟨ a ⟩→ s₂ ⊎ s₁ -⟨τ⟩→ s₂
-          → s₂ ≡ s′ × (s₁ ≈ t) × (s′ ≈ t′))))
+            × s₁ -⟨ a ⟩→ s′
+            × (s₁ ≈ t) × (s′ ≈ t′)))
+      d₂-τ : ∀{t′}
+        → t -⟨τ⟩→ t′ → ∃ (λ s′ → s ⇒ s′ × (s′ ≈ t′))
 
   -- Game configurations
   BC : Player → Set
@@ -143,3 +146,17 @@ record LTS : Set₁ where
                      { δ = update-C ;
                        reward? = reward-C
                      }
+
+  open Game BranchingBisimGame
+  open _≈_
+
+  -- If a D-winning strategy exists, a branching bisimulation exists between 2 states
+  LTS-bbisim : {c : BC S} (w : DWStrat S c) → proj₁ c ≈ proj₁ (proj₂ c)
+  -- D wins if S gets stuck
+  d₁-a (LTS-bbisim {q₁ , q₂ , c , r} (Game.end x)) = λ x₁ → ⊥-elim (x (inj₁ (_ , (_ , x₁ , {!!}))))
+  d₁-a (LTS-bbisim {q₁ , q₂ , c , r} (Game.stepSFin m w)) = {!!}
+  -- or D wins if infinitely ✓ rewards are given
+  d₁-a (LTS-bbisim {q₁ , q₂ , c , r} (Game.stepSInf m x x₁)) = {!!}
+  d₁-τ (LTS-bbisim w) x = {!!}
+  d₂-a (LTS-bbisim w) x = {!!}
+  d₂-τ (LTS-bbisim w) x = {!!}
