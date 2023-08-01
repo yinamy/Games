@@ -9,6 +9,7 @@ open import Data.Bool hiding (_≟_)
 open import Data.Product
 open import Data.Sum
 open import Data.Empty
+open import Data.Maybe
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality
 open import Codata.Musical.Notation
@@ -66,69 +67,47 @@ record LTS : Set₁ where
     Q : Set
     A : Set
     _-⟨_⟩→_ : Q → A → Q → Set
+    _-⟨τ⟩→_ : Q → Q → Set
 
-  -- Bisimulation
+
+  -- Thing in Rob's deifnition of branching bisimulation that I need to use
+  data _⇒_  : Q → Q → Set where
+    n=0 : {s : Q} → s ⇒ s
+    n>0 : {s t s₀ : Q} → s -⟨τ⟩→ s₀ → s₀ ⇒ t → s ⇒ t
+
+  -- Branching bisimulation
   record _≈_ (s t : Q) : Set where
     coinductive
     field
-      d₁ : ∀{s′}{a} → s -⟨ a ⟩→ s′ → ∃ (λ t′ → t -⟨ a ⟩→ t′ × s′ ≈ t′)
-      d₂ : ∀{t′}{a} → t -⟨ a ⟩→ t′ → ∃ (λ s′ → s -⟨ a ⟩→ s′ × s′ ≈ t′)
+      d₁-a : ∀{s′}{a}
+        → s -⟨ a ⟩→ s′
+        → ∃ (λ t₁ → ∃ (λ t′
+          → t ⇒ t₁
+            × t₁ -⟨ a ⟩→ t′
+            × (s ≈ t₁) × (s′ ≈ t′)))
+      d₁-τ : ∀{s′}
+        → s -⟨τ⟩→ s′ → ∃ (λ t′ → t ⇒ t′ × (s′ ≈ t′))
+      d₂-a : ∀{t′}{a}
+        → t -⟨ a ⟩→ t′
+        → ∃ (λ s₁ → ∃ (λ s′
+          → s ⇒ s₁
+            × s₁ -⟨ a ⟩→ s′
+            × (s₁ ≈ t) × (s′ ≈ t′)))
+      d₂-τ : ∀{t′}
+        → t -⟨τ⟩→ t′ → ∃ (λ s′ → s ⇒ s′ × (s′ ≈ t′))
+
 
 
   BC : Player → Set
-  BC S = Q × Q
-  BC D = Q × Q × A × Two
+  BC S = Q × Q × Q
+  BC D = Q × Q × Q × Maybe A
 
   BM : (p : Player) (c : BC p) → Set
+  BM S (q₁ , q₂ , q₃) = {!!}
+  BM D (q₁ , q₂ , q₃ , just x) = {!!}
+  BM D (q₁ , q₂ , q₃ , nothing) = {!!}
+
+  {-BM : (p : Player) (c : BC p) → Set
   BM S (q₁ , q₂) = Σ A (λ a → Σ Q (λ q₁′ → q₁ -⟨ a ⟩→ q₁′ )) ⊎  Σ A (λ a → Σ Q (λ q₂′ → q₂ -⟨ a ⟩→ q₂′ ))
   BM D (q₁ , q₂ , a , First) = Σ Q (λ q₂′ → q₂ -⟨ a ⟩→ q₂′)
-  BM D (q₁ , q₂ , a , Second) =  Σ Q (λ q₁′ → q₁ -⟨ a ⟩→ q₁′)
-
-  update-C : (p : Player) (c : BC p) (m : BM p c) → BC (op p)
-  update-C S (q₁ , q₂) (inj₁ (a , q₁′ , t)) = q₁′ , q₂ , a , First
-  update-C S (q₁ , q₂) (inj₂ (a , q₂′ , t)) = q₁ , q₂′ , a , Second
-  update-C D (q₁ , q₂ , a , First) (q₂′ , t) = q₁ , q₂′
-  update-C D (q₁ , q₂ , a , Second) (q₁′ , t) = q₁′ , q₂
-
-  LTSBisimGame : Game BC BM
-  LTSBisimGame = record
-               { δ = update-C
-               }
-
-
-  open Game LTSBisimGame
-  open _≈_
-
--- If a D-winning strategy exists, a bisimulation exists between 2 states
-  LTS-bisim : {c : BC S} (w : DWStrat S c) → proj₁ c ≈ proj₂ c
-  d₁ (LTS-bisim {q₁ , q₂} (Game.end x)) = λ x₁ → ⊥-elim (x (inj₁ (_ , (_ , x₁))))
-  d₂ (LTS-bisim {q₁ , q₂} (Game.end x)) = λ x₁ → ⊥-elim (x (inj₂ (_ , (_ , x₁))))
-  d₁ (LTS-bisim {q₁ , q₂} (Game.stepS x)) t with x (inj₁ (_ , _ , t))
-  ... | Game.stepD (q₂′ , t′) x′ = _ , t′ , LTS-bisim (♭ x′)
-  d₂ (LTS-bisim {q₁ , q₂} (Game.stepS x)) t with x (inj₂ (_ , _ , t))
-  ... | Game.stepD (q₁′ , t′) x′ = _ , t′ , LTS-bisim (♭ x′)
-
--- If an S-winning strategy exists, a bisimulation does not exist between 2 states
-  LTS-not-bisim : {c : BC S} (w : SWStrat S c) → ¬ (proj₁ c ≈ proj₂ c)
-  LTS-not-bisim {q₁ , q₂} (Game.stepS (inj₁ (a , q₁′ , t)) (Game.end x)) p with d₁ p t
-  ... | q₂′ , t′ , p′ = x (_ , t′)
-  LTS-not-bisim {q₁ , q₂} (Game.stepS (inj₂ (a , q₂′ , t)) (Game.end x)) p with d₂ p t
-  ... | q₁′ , t′ , p′ = x (_ , t′)
-  LTS-not-bisim {q₁ , q₂} (Game.stepS (inj₁ (a , q₁′ , t)) (Game.stepD x)) p with d₁ p t
-  ... | q₂′ , t′ , p′ = LTS-not-bisim (x (_ , t′)) p′
-  LTS-not-bisim {q₁ , q₂} (Game.stepS (inj₂ (a , q₂′ , t)) (Game.stepD x)) p with d₂ p t
-  ... | q₁′ , t′ , p′ = LTS-not-bisim (x (_ , t′)) p′
-
--- Instantiating our bisimulation game to a stream equivalence game
-
--- A stream as an LTS
-StreamLTS : LTS
-StreamLTS = record
-  { Q = Stream ℕ
-  ; A = ℕ
-  ; _-⟨_⟩→_ = λ q a q′ → del q a ≡ q′
-  }
-    where
-      del : Stream ℕ → ℕ → Stream ℕ
-      del (x ∷ xs) zero = ♭ xs
-      del (x ∷ xs) (suc n) = x ∷ ♯ (del (♭ xs) n)
+  BM D (q₁ , q₂ , a , Second) =  Σ Q (λ q₁′ → q₁ -⟨ a ⟩→ q₁′)-}
