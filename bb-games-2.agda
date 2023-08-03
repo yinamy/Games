@@ -21,9 +21,6 @@ open import Codata.Musical.Stream hiding (_≈_)
 data Player : Set where
     S D : Player
 
-data Two : Set where
-    First Second : Two
-
 -- Get the opposite of a player
 op : Player → Player
 op S = D
@@ -81,33 +78,114 @@ record LTS : Set₁ where
     field
       d₁-a : ∀{s′}{a}
         → s -⟨ a ⟩→ s′
-        → ∃ (λ t₁ → ∃ (λ t′
-          → t ⇒ t₁
-            × t₁ -⟨ a ⟩→ t′
-            × (s ≈ t₁) × (s′ ≈ t′)))
+        → ∃ (λ t₁ → ∃ (λ t′ → t ⇒ t₁ × t₁ -⟨ a ⟩→ t′ × (s ≈ t₁) × (s′ ≈ t′)))
       d₁-τ : ∀{s′}
-        → s -⟨τ⟩→ s′ → ∃ (λ t′ → t ⇒ t′ × (s′ ≈ t′))
+        → s -⟨τ⟩→ s′ → ∃ (λ t′ → t ⇒ t′ × (s ≈ t′) × (s′ ≈ t′))
+          ⊎  ∃ (λ t₁ → ∃ (λ t′ → t ⇒ t₁ × t₁ -⟨τ⟩→ t′ × (s ≈ t₁) × (s′ ≈ t′)))
       d₂-a : ∀{t′}{a}
         → t -⟨ a ⟩→ t′
-        → ∃ (λ s₁ → ∃ (λ s′
-          → s ⇒ s₁
-            × s₁ -⟨ a ⟩→ s′
-            × (s₁ ≈ t) × (s′ ≈ t′)))
+        --→ ∃ (λ s₁ → ∃ (λ s′ → s ⇒ s₁ × s₁ -⟨ a ⟩→ s′ × (s₁ ≈ t) × (s′ ≈ t′)))
+        → ∃ (λ s₁ → ∃ (λ s′ → s ⇒ s₁ × s₁ -⟨ a ⟩→ s′ × (t ≈ s₁) × (t′ ≈ s′)))
       d₂-τ : ∀{t′}
-        → t -⟨τ⟩→ t′ → ∃ (λ s′ → s ⇒ s′ × (s′ ≈ t′))
+        -- → t -⟨τ⟩→ t′ → ∃ (λ s′ → s ⇒ s′ × (s′ ≈ t) × (s′ ≈ t′))
+        --  ⊎ ∃ (λ s₁ → ∃ (λ s′ → s ⇒ s₁ × s₁ -⟨τ⟩→ s′ × (s₁ ≈ t) × (s′ ≈ t′)))
+        → t -⟨τ⟩→ t′ → ∃ (λ s′ → s ⇒ s′ × (t ≈ s′) × (t′ ≈ s′))
+          ⊎ ∃ (λ s₁ → ∃ (λ s′ → s ⇒ s₁ × s₁ -⟨τ⟩→ s′ × (t ≈ s₁) × (t′ ≈ s′)))
+
+  open _≈_
+
+  {-≈-sym : ∀{s t} → s ≈ t → t ≈ s
+  d₁-a (≈-sym p) t with d₂-a p t
+  ... | q₁ , q₂ , x , p₁ , b₁ , b₂ = _ , _ , x , p₁ , ≈-sym b₁ , ≈-sym b₂
+  d₁-τ (≈-sym p) t with d₂-τ p t
+  ... | inj₁ (q₁ , x , b₁ , b₂) = inj₁ (_ , x , ≈-sym b₁ , ≈-sym b₂)
+  ... | inj₂ (q₁ , q₂ , x , p₁ , b₁ , b₂) = inj₂ (_ , _ , x , p₁ , ≈-sym b₁  , ≈-sym b₂)
+  d₂-a (≈-sym p) t with d₁-a p t
+  ... | q₁ , q₂ , x , p₁ , b₁ , b₂ = _ , _ , x , p₁ , ≈-sym b₁ , ≈-sym b₂
+  d₂-τ (≈-sym p) t with d₁-τ p t
+  ... | inj₁ (q₁ , x , b₁ , b₂) = inj₁ (_ , x , ≈-sym b₁ , ≈-sym b₂)
+  ... | inj₂ (q₁ , q₂ , x , p₁ , b₁ , b₂) = inj₂ (_ , _ , x , p₁ , ≈-sym b₁  , ≈-sym b₂)-}
 
 
-
+  -- Game configurations
   BC : Player → Set
-  BC S = Q × Q × Q
+  BC S = Q × Q × Q × Q
   BC D = Q × Q × Q × Maybe A
 
-  BM : (p : Player) (c : BC p) → Set
-  BM S (q₁ , q₂ , q₃) = {!!}
-  BM D (q₁ , q₂ , q₃ , just x) = {!!}
-  BM D (q₁ , q₂ , q₃ , nothing) = {!!}
-
+  -- Game moves
   {-BM : (p : Player) (c : BC p) → Set
-  BM S (q₁ , q₂) = Σ A (λ a → Σ Q (λ q₁′ → q₁ -⟨ a ⟩→ q₁′ )) ⊎  Σ A (λ a → Σ Q (λ q₂′ → q₂ -⟨ a ⟩→ q₂′ ))
-  BM D (q₁ , q₂ , a , First) = Σ Q (λ q₂′ → q₂ -⟨ a ⟩→ q₂′)
-  BM D (q₁ , q₂ , a , Second) =  Σ Q (λ q₁′ → q₁ -⟨ a ⟩→ q₁′)-}
+  BM S (q₁ , q₂ , q₃ , q₄) = Σ A (λ a → Σ Q (λ q₁′ → q₁ -⟨ a ⟩→ q₁′ ))
+    ⊎  Σ A (λ a → Σ Q (λ q₂′ → q₂ -⟨ a ⟩→ q₂′ ))
+    ⊎  Σ A (λ a → Σ Q (λ q₃′ → q₃ -⟨ a ⟩→ q₃′ ))
+    ⊎  Σ A (λ a → Σ Q (λ q₄′ → q₄ -⟨ a ⟩→ q₄′ ))
+    ⊎  Σ Q (λ q₁′ → q₁ -⟨τ⟩→ q₁′ )
+    ⊎  Σ Q (λ q₂′ → q₂ -⟨τ⟩→ q₂′ )
+    ⊎  Σ Q (λ q₃′ → q₃ -⟨τ⟩→ q₃′ )
+    ⊎  Σ Q (λ q₄′ → q₄ -⟨τ⟩→ q₄′ )
+  BM D (q₁ , q₂ , q₃ , just a) =  Σ Q (λ q₃′ → Σ Q (λ q₃′′ → q₃ ⇒ q₃′ × q₃′ -⟨ a ⟩→ q₃′′))
+  BM D (q₁ , q₂ , q₃ , nothing) =  Σ Q (λ q₃′ → Σ Q (λ q₃′′ → q₃ ⇒ q₃′ × q₃′ -⟨τ⟩→ q₃′′))
+    ⊎  Σ Q (λ q₃′ → q₃ ⇒ q₃′ )-}
+
+  -- The possible moves
+  data BM : (p : Player) (c : BC p) → Set where
+    s-q₁-a : ∀{q₁ q₂ q₃ q₄ q₁′}{a}  → q₁ -⟨ a ⟩→ q₁′ → BM S (q₁ , q₂ , q₃ , q₄)
+    s-q₂-a : ∀{q₁ q₂ q₃ q₄ q₂′}{a}  → q₂ -⟨ a ⟩→ q₂′ → BM S (q₁ , q₂ , q₃ , q₄)
+    s-q₃-a : ∀{q₁ q₂ q₃ q₄ q₃′}{a}  → q₃ -⟨ a ⟩→ q₃′ → BM S (q₁ , q₂ , q₃ , q₄)
+    s-q₄-a : ∀{q₁ q₂ q₃ q₄ q₄′}{a}  → q₄ -⟨ a ⟩→ q₄′ → BM S (q₁ , q₂ , q₃ , q₄)
+    s-q₁-τ : ∀{q₁ q₂ q₃ q₄ q₁′}     → q₁ -⟨τ⟩→ q₁′   → BM S (q₁ , q₂ , q₃ , q₄)
+    s-q₂-τ : ∀{q₁ q₂ q₃ q₄ q₂′}     → q₂ -⟨τ⟩→ q₂′   → BM S (q₁ , q₂ , q₃ , q₄)
+    s-q₃-τ : ∀{q₁ q₂ q₃ q₄ q₃′}     → q₃ -⟨τ⟩→ q₃′   → BM S (q₁ , q₂ , q₃ , q₄)
+    s-q₄-τ : ∀{q₁ q₂ q₃ q₄ q₄′}     → q₄ -⟨τ⟩→ q₄′   → BM S (q₁ , q₂ , q₃ , q₄)
+
+    d-a : ∀{q₁ q₂ q₃ q₃′ q₃′′}{a} → q₃ ⇒ q₃′ → q₃′ -⟨ a ⟩→ q₃′′ → BM D (q₁ , q₂ , q₃ , just a)
+    d-τ :  ∀{q₁ q₂ q₃ q₃′ q₃′′} → q₃ ⇒ q₃′ → q₃′ -⟨τ⟩→ q₃′′ → BM D (q₁ , q₂ , q₃ , nothing)
+    d-empty :  ∀{q₁ q₂ q₃ q₃′} → q₃ ⇒ q₃′ → BM D (q₁ , q₂ , q₃ , nothing)
+
+  update-C : (p : Player) (c : BC p) (m : BM p c) → BC (op p)
+  update-C S (q₁ , q₂ , q₃ , q₄) (s-q₁-a {q₁′ = q₁′}{a = a} x) = q₁ , q₁′ , q₂ , just a
+  update-C S (q₁ , q₂ , q₃ , q₄) (s-q₂-a {q₂′ = q₂′}{a = a} x) = q₂ , q₂′ , q₁ , just a
+  update-C S (q₁ , q₂ , q₃ , q₄) (s-q₃-a {q₃′ = q₃′}{a = a} x) = q₃ , q₃′ , q₄ , just a
+  update-C S (q₁ , q₂ , q₃ , q₄) (s-q₄-a {q₄′ = q₄′}{a = a} x) = q₄ , q₄′ , q₃ , just a
+  update-C S (q₁ , q₂ , q₃ , q₄) (s-q₁-τ {q₁′ = q₁′} x) = q₁ , q₁′ , q₂ , nothing
+  update-C S (q₁ , q₂ , q₃ , q₄) (s-q₂-τ {q₂′ = q₂′} x) = q₂ , q₂′ , q₁ , nothing
+  update-C S (q₁ , q₂ , q₃ , q₄) (s-q₃-τ {q₃′ = q₃′} x) = q₃ , q₃′ , q₄ , nothing
+  update-C S (q₁ , q₂ , q₃ , q₄) (s-q₄-τ {q₄′ = q₄′} x) = q₄ , q₄′ , q₃ , nothing
+  update-C D (q₁ , q₂ , q₃ , just a) (d-a {q₃′ = q₃′}{q₃′′} x x₁) = q₁ , q₃′ , q₂ , q₃′′
+  update-C D (q₁ , q₂ , q₃ , nothing) (d-τ {q₃′ = q₃′}{q₃′′} x x₁) = q₁ , q₃′ , q₂ , q₃′′
+  update-C D (q₁ , q₂ , q₃ , nothing) (d-empty {q₃′ = q₃′} x) = q₁ , q₃′ , q₂ , q₃′
+
+  BranchingBisimGame : Game BC BM
+  BranchingBisimGame = record
+                     { δ = update-C
+                     }
+
+  open Game BranchingBisimGame
+  open _≈_
+
+  LTS-bisim₁ : {q₁ q₂ q₃ q₄ : Q} (w : DWStrat S (q₁ , q₂ , q₃ , q₄)) → q₁ ≈ q₂
+  LTS-bisim₂ : {q₁ q₂ q₃ q₄ : Q} (w : DWStrat S (q₁ , q₂ , q₃ , q₄)) → q₃ ≈ q₄
+  d₁-a (LTS-bisim₁ (Game.end x)) t = ⊥-elim (x (s-q₁-a t) )
+  d₁-a (LTS-bisim₁ (Game.stepS x)) t with x (s-q₁-a t)
+  ... | Game.stepD (d-a x₂ x₃) x₁ = _ , _ , x₂ , x₃ , LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁)
+  d₁-τ (LTS-bisim₁ (Game.end x)) t = ⊥-elim (x (s-q₁-τ t))
+  d₁-τ (LTS-bisim₁ (Game.stepS x)) t with x (s-q₁-τ t)
+  ... | Game.stepD (d-τ x₂ x₃) x₁ = inj₂ (_ , _ , x₂ , x₃ , LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁))
+  ... | Game.stepD (d-empty x₂) x₁ = inj₁ (_ , x₂ , LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁) )
+  d₂-a (LTS-bisim₁ (Game.end x)) t = ⊥-elim (x (s-q₂-a t))
+  d₂-a (LTS-bisim₁ (Game.stepS x)) t with x (s-q₂-a t)
+  ... | Game.stepD (d-a x₂ x₃) x₁ = _ , _ , x₂ , x₃ , LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁)
+  d₂-τ (LTS-bisim₁ (Game.end x)) t = ⊥-elim (x (s-q₂-τ t))
+  d₂-τ (LTS-bisim₁ (Game.stepS x)) t with x (s-q₂-τ t)
+  ... | Game.stepD (d-τ x₂ x₃) x₁ = inj₂ (_ , _ , x₂ , x₃ , LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁))
+  ... | Game.stepD (d-empty x₂) x₁ = inj₁ (_ , x₂ ,  LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁))
+  d₁-a (LTS-bisim₂ (Game.end x)) t = ⊥-elim (x (s-q₃-a t))
+  d₁-a (LTS-bisim₂ (Game.stepS x)) t with x (s-q₃-a t)
+  ... | Game.stepD (d-a x₂ x₃) x₁ = _ , _ , x₂ , x₃ , LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁)
+  d₁-τ (LTS-bisim₂ (Game.end x)) t = ⊥-elim (x (s-q₃-τ t))
+  d₁-τ (LTS-bisim₂ (Game.stepS x)) t with x (s-q₃-τ t)
+  ... | Game.stepD (d-τ x₂ x₃) x₁ = ?
+  ... | Game.stepD (d-empty x₂) x₁ = ?
+  d₂-a (LTS-bisim₂ (Game.end x)) t = ⊥-elim (x (s-q₄-a t))
+  d₂-a (LTS-bisim₂ (Game.stepS x)) t = {!!}
+  d₂-τ (LTS-bisim₂ (Game.end x)) t = ⊥-elim (x (s-q₄-τ t))
+  d₂-τ (LTS-bisim₂ (Game.stepS x)) t = {!!}
