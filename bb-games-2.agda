@@ -94,37 +94,10 @@ record LTS : Set₁ where
 
   open _≈_
 
-  {-≈-sym : ∀{s t} → s ≈ t → t ≈ s
-  d₁-a (≈-sym p) t with d₂-a p t
-  ... | q₁ , q₂ , x , p₁ , b₁ , b₂ = _ , _ , x , p₁ , ≈-sym b₁ , ≈-sym b₂
-  d₁-τ (≈-sym p) t with d₂-τ p t
-  ... | inj₁ (q₁ , x , b₁ , b₂) = inj₁ (_ , x , ≈-sym b₁ , ≈-sym b₂)
-  ... | inj₂ (q₁ , q₂ , x , p₁ , b₁ , b₂) = inj₂ (_ , _ , x , p₁ , ≈-sym b₁  , ≈-sym b₂)
-  d₂-a (≈-sym p) t with d₁-a p t
-  ... | q₁ , q₂ , x , p₁ , b₁ , b₂ = _ , _ , x , p₁ , ≈-sym b₁ , ≈-sym b₂
-  d₂-τ (≈-sym p) t with d₁-τ p t
-  ... | inj₁ (q₁ , x , b₁ , b₂) = inj₁ (_ , x , ≈-sym b₁ , ≈-sym b₂)
-  ... | inj₂ (q₁ , q₂ , x , p₁ , b₁ , b₂) = inj₂ (_ , _ , x , p₁ , ≈-sym b₁  , ≈-sym b₂)-}
-
-
   -- Game configurations
   BC : Player → Set
   BC S = Q × Q × Q × Q
   BC D = Q × Q × Q × Maybe A
-
-  -- Game moves
-  {-BM : (p : Player) (c : BC p) → Set
-  BM S (q₁ , q₂ , q₃ , q₄) = Σ A (λ a → Σ Q (λ q₁′ → q₁ -⟨ a ⟩→ q₁′ ))
-    ⊎  Σ A (λ a → Σ Q (λ q₂′ → q₂ -⟨ a ⟩→ q₂′ ))
-    ⊎  Σ A (λ a → Σ Q (λ q₃′ → q₃ -⟨ a ⟩→ q₃′ ))
-    ⊎  Σ A (λ a → Σ Q (λ q₄′ → q₄ -⟨ a ⟩→ q₄′ ))
-    ⊎  Σ Q (λ q₁′ → q₁ -⟨τ⟩→ q₁′ )
-    ⊎  Σ Q (λ q₂′ → q₂ -⟨τ⟩→ q₂′ )
-    ⊎  Σ Q (λ q₃′ → q₃ -⟨τ⟩→ q₃′ )
-    ⊎  Σ Q (λ q₄′ → q₄ -⟨τ⟩→ q₄′ )
-  BM D (q₁ , q₂ , q₃ , just a) =  Σ Q (λ q₃′ → Σ Q (λ q₃′′ → q₃ ⇒ q₃′ × q₃′ -⟨ a ⟩→ q₃′′))
-  BM D (q₁ , q₂ , q₃ , nothing) =  Σ Q (λ q₃′ → Σ Q (λ q₃′′ → q₃ ⇒ q₃′ × q₃′ -⟨τ⟩→ q₃′′))
-    ⊎  Σ Q (λ q₃′ → q₃ ⇒ q₃′ )-}
 
   -- The possible moves
   data BM : (p : Player) (c : BC p) → Set where
@@ -162,6 +135,7 @@ record LTS : Set₁ where
   open Game BranchingBisimGame
   open _≈_
 
+  -- If a winning strategy exists for S, then two states are branching bisimilar
   LTS-bisim₁ : {q₁ q₂ q₃ q₄ : Q} (w : DWStrat S (q₁ , q₂ , q₃ , q₄)) → q₁ ≈ q₂
   LTS-bisim₂ : {q₁ q₂ q₃ q₄ : Q} (w : DWStrat S (q₁ , q₂ , q₃ , q₄)) → q₃ ≈ q₄
   d₁-a (LTS-bisim₁ (Game.end x)) t = ⊥-elim (x (s-q₁-a t) )
@@ -183,9 +157,16 @@ record LTS : Set₁ where
   ... | Game.stepD (d-a x₂ x₃) x₁ = _ , _ , x₂ , x₃ , LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁)
   d₁-τ (LTS-bisim₂ (Game.end x)) t = ⊥-elim (x (s-q₃-τ t))
   d₁-τ (LTS-bisim₂ (Game.stepS x)) t with x (s-q₃-τ t)
-  ... | Game.stepD (d-τ x₂ x₃) x₁ = ?
-  ... | Game.stepD (d-empty x₂) x₁ = ?
+  ... | Game.stepD (d-τ x₂ x₃) x₁ = inj₂ (_ , _ , x₂ , x₃ , LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁))
+  ... | Game.stepD (d-empty x₂) x₁ = inj₁ (_ , x₂ ,  LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁))
   d₂-a (LTS-bisim₂ (Game.end x)) t = ⊥-elim (x (s-q₄-a t))
-  d₂-a (LTS-bisim₂ (Game.stepS x)) t = {!!}
+  d₂-a (LTS-bisim₂ (Game.stepS x)) t with x (s-q₄-a t)
+  ... | Game.stepD (d-a x₂ x₃) x₁ = _ , _ , x₂ , x₃ , LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁)
   d₂-τ (LTS-bisim₂ (Game.end x)) t = ⊥-elim (x (s-q₄-τ t))
-  d₂-τ (LTS-bisim₂ (Game.stepS x)) t = {!!}
+  d₂-τ (LTS-bisim₂ (Game.stepS x)) t with x (s-q₄-τ t)
+  ... | Game.stepD (d-τ x₂ x₃) x₁ = inj₂ (_ , _ , x₂ , x₃ , LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁))
+  ... | Game.stepD (d-empty x₂) x₁ = inj₁ (_ , x₂ ,  LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁))
+
+  LTS-not-bisim : {q₁ q₂ q₃ q₄ : Q} (w : DWStrat S (q₁ , q₂ , q₃ , q₄)) → ¬ (q₁ ≈ q₂) ⊎ ¬ (q₃ ≈ q₄)
+  LTS-not-bisim (Game.end x) = inj₁ (λ x₁ → ⊥-elim (x {!!}))
+  LTS-not-bisim (Game.stepS x) = {!!}
