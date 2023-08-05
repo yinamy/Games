@@ -168,5 +168,5 @@ record LTS : Set₁ where
   ... | Game.stepD (d-empty x₂) x₁ = inj₁ (_ , x₂ ,  LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁))
 
   LTS-not-bisim : {q₁ q₂ q₃ q₄ : Q} (w : DWStrat S (q₁ , q₂ , q₃ , q₄)) → ¬ (q₁ ≈ q₂) ⊎ ¬ (q₃ ≈ q₄)
-  LTS-not-bisim (Game.end x) = inj₁ (λ x₁ → ⊥-elim (x {!!}))
+  LTS-not-bisim (Game.end x) = ?
   LTS-not-bisim (Game.stepS x) = {!!}
