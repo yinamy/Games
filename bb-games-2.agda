@@ -168,12 +168,21 @@ record LTS : Set₁ where
   ... | Game.stepD (d-empty x₂) x₁ = inj₁ (_ , x₂ ,  LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁))
 
   LTS-not-bisim : {q₁ q₂ q₃ q₄ : Q} (w : SWStrat S (q₁ , q₂ , q₃ , q₄)) → ¬ (q₁ ≈ q₂ × q₃ ≈ q₄)
-  LTS-not-bisim {q₁} (Game.stepS (s-q₁-a x) (Game.end x₁)) = ?
-  LTS-not-bisim (Game.stepS (s-q₁-a x) (Game.stepD x₁)) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₂-a x) w) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₃-a x) w) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₄-a x) w) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₁-τ x) w) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₂-τ x) w) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₃-τ x) w) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₄-τ x) w) = {!!}
+  LTS-not-bisim {q₁} (Game.stepS (s-q₁-a x) (Game.end x₁)) (p , _) with d₁-a p x
+  ... | _ , _ , t₁ , t₂ , _ , _ = ⊥-elim (x₁ (d-a t₁ t₂))
+  LTS-not-bisim (Game.stepS (s-q₁-a x) (Game.stepD x₁)) (p , _) with d₁-a p x
+  ... | _ , _ , t₁ , t₂ , b₁ , b₂ = ⊥-elim ((LTS-not-bisim (x₁ (d-a t₁ t₂))) (b₁ , b₂))
+  LTS-not-bisim (Game.stepS (s-q₂-a x) (Game.end x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₂-a x) (Game.stepD x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₃-a x) (Game.end x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₃-a x) (Game.stepD x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₄-a x) (Game.end x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₄-a x) (Game.stepD x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₁-τ x) (Game.end x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₁-τ x) (Game.stepD x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₂-τ x) (Game.end x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₂-τ x) (Game.stepD x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₃-τ x) (Game.end x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₃-τ x) (Game.stepD x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₄-τ x) (Game.end x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₄-τ x) (Game.stepD x₁)) = {!!}
