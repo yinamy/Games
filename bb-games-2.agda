@@ -167,6 +167,7 @@ record LTS : Set₁ where
   ... | Game.stepD (d-τ x₂ x₃) x₁ = inj₂ (_ , _ , x₂ , x₃ , LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁))
   ... | Game.stepD (d-empty x₂) x₁ = inj₁ (_ , x₂ ,  LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁))
 
+  -- If an S-winning strategy exists, a bisimulation does not exist between 2 states
   LTS-not-bisim : {q₁ q₂ q₃ q₄ : Q} (w : SWStrat S (q₁ , q₂ , q₃ , q₄)) → ¬ (q₁ ≈ q₂ × q₃ ≈ q₄)
   LTS-not-bisim {q₁} (Game.stepS (s-q₁-a x) (Game.end x₁)) (p , _) with d₁-a p x
   ... | _ , _ , t₁ , t₂ , _ , _ = ⊥-elim (x₁ (d-a t₁ t₂))
@@ -184,11 +185,21 @@ record LTS : Set₁ where
   ... | _ , _ , t₁ , t₂ , _ , _ = ⊥-elim (x₁ (d-a t₁ t₂))
   LTS-not-bisim (Game.stepS (s-q₄-a x) (Game.stepD x₁)) (_ , q) with d₂-a q x
   ... | _ , _ , t₁ , t₂ , b₁ , b₂ = ⊥-elim ((LTS-not-bisim (x₁ (d-a t₁ t₂))) (b₁ , b₂))
-  LTS-not-bisim (Game.stepS (s-q₁-τ x) (Game.end x₁)) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₁-τ x) (Game.stepD x₁)) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₂-τ x) (Game.end x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₁-τ x) (Game.end x₁)) (p , _) with d₁-τ p x
+  ... | inj₁ (_ , t₁ , b₁ , b₂) = ⊥-elim (x₁ (d-empty t₁))
+  ... | inj₂ (_ , _ , t₁ , t₂ , b₁ , b₂) = ⊥-elim (x₁ (d-τ t₁ t₂))
+  LTS-not-bisim (Game.stepS (s-q₁-τ x) (Game.stepD x₁)) (p , _) with d₁-τ p x
+  ... | inj₁ (_ , t₁ , b₁ , b₂) = ⊥-elim (LTS-not-bisim (x₁ (d-empty t₁)) (b₁ , b₂))
+  ... | inj₂ y = {!!}
+  LTS-not-bisim (Game.stepS (s-q₂-τ x) (Game.end x₁)) (p , _) with d₂-τ p x
+  ... | inj₁ (_ , t₁ , b₁ , b₂) = ⊥-elim (x₁ (d-empty t₁))
+  ... | inj₂ (_ , _ , t₁ , t₂ , b₁ , b₂) = ⊥-elim (x₁ (d-τ t₁ t₂))
   LTS-not-bisim (Game.stepS (s-q₂-τ x) (Game.stepD x₁)) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₃-τ x) (Game.end x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₃-τ x) (Game.end x₁)) (_ , q) with d₁-τ q x
+  ... | inj₁ (_ , t₁ , b₁ , b₂) = ⊥-elim (x₁ (d-empty t₁))
+  ... | inj₂ (_ , _ , t₁ , t₂ , b₁ , b₂) = ⊥-elim (x₁ (d-τ t₁ t₂))
   LTS-not-bisim (Game.stepS (s-q₃-τ x) (Game.stepD x₁)) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₄-τ x) (Game.end x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₄-τ x) (Game.end x₁)) (_ , q) with d₂-τ q x
+  ... | inj₁ (_ , t₁ , b₁ , b₂) = ⊥-elim (x₁ (d-empty t₁))
+  ... | inj₂ (_ , _ , t₁ , t₂ , b₁ , b₂) = ⊥-elim (x₁ (d-τ t₁ t₂))
   LTS-not-bisim (Game.stepS (s-q₄-τ x) (Game.stepD x₁)) = {!!}
