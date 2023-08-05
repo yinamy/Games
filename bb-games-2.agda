@@ -172,12 +172,18 @@ record LTS : Set₁ where
   ... | _ , _ , t₁ , t₂ , _ , _ = ⊥-elim (x₁ (d-a t₁ t₂))
   LTS-not-bisim (Game.stepS (s-q₁-a x) (Game.stepD x₁)) (p , _) with d₁-a p x
   ... | _ , _ , t₁ , t₂ , b₁ , b₂ = ⊥-elim ((LTS-not-bisim (x₁ (d-a t₁ t₂))) (b₁ , b₂))
-  LTS-not-bisim (Game.stepS (s-q₂-a x) (Game.end x₁)) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₂-a x) (Game.stepD x₁)) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₃-a x) (Game.end x₁)) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₃-a x) (Game.stepD x₁)) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₄-a x) (Game.end x₁)) = {!!}
-  LTS-not-bisim (Game.stepS (s-q₄-a x) (Game.stepD x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₂-a x) (Game.end x₁)) (p , _) with d₂-a p x
+  ... | _ , _ , t₁ , t₂ , b₁ , b₂ = ⊥-elim (x₁ (d-a t₁ t₂))
+  LTS-not-bisim (Game.stepS (s-q₂-a x) (Game.stepD x₁)) (p , _) with d₂-a p x
+  ... | _ , _ , t₁ , t₂ , b₁ , b₂ = ⊥-elim ((LTS-not-bisim (x₁ (d-a t₁ t₂))) (b₁ , b₂))
+  LTS-not-bisim (Game.stepS (s-q₃-a x) (Game.end x₁)) (_ , q) with d₁-a q x
+  ... | _ , _ , t₁ , t₂ , _ , _ = ⊥-elim (x₁ (d-a t₁ t₂))
+  LTS-not-bisim (Game.stepS (s-q₃-a x) (Game.stepD x₁)) (_ , q) with d₁-a q x
+  ... | _ , _ , t₁ , t₂ , b₁ , b₂ = ⊥-elim ((LTS-not-bisim (x₁ (d-a t₁ t₂))) (b₁ , b₂))
+  LTS-not-bisim (Game.stepS (s-q₄-a x) (Game.end x₁)) (_ , q) with d₂-a q x
+  ... | _ , _ , t₁ , t₂ , _ , _ = ⊥-elim (x₁ (d-a t₁ t₂))
+  LTS-not-bisim (Game.stepS (s-q₄-a x) (Game.stepD x₁)) (_ , q) with d₂-a q x
+  ... | _ , _ , t₁ , t₂ , b₁ , b₂ = ⊥-elim ((LTS-not-bisim (x₁ (d-a t₁ t₂))) (b₁ , b₂))
   LTS-not-bisim (Game.stepS (s-q₁-τ x) (Game.end x₁)) = {!!}
   LTS-not-bisim (Game.stepS (s-q₁-τ x) (Game.stepD x₁)) = {!!}
   LTS-not-bisim (Game.stepS (s-q₂-τ x) (Game.end x₁)) = {!!}
