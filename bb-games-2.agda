@@ -190,16 +190,22 @@ record LTS : Set₁ where
   ... | inj₂ (_ , _ , t₁ , t₂ , b₁ , b₂) = ⊥-elim (x₁ (d-τ t₁ t₂))
   LTS-not-bisim (Game.stepS (s-q₁-τ x) (Game.stepD x₁)) (p , _) with d₁-τ p x
   ... | inj₁ (_ , t₁ , b₁ , b₂) = ⊥-elim (LTS-not-bisim (x₁ (d-empty t₁)) (b₁ , b₂))
-  ... | inj₂ y = {!!}
+  ... | inj₂ (_ , _ , t₁ , t₂ , b₁ , b₂) = ⊥-elim (LTS-not-bisim (x₁ (d-τ t₁ t₂)) (b₁ , b₂))
   LTS-not-bisim (Game.stepS (s-q₂-τ x) (Game.end x₁)) (p , _) with d₂-τ p x
   ... | inj₁ (_ , t₁ , b₁ , b₂) = ⊥-elim (x₁ (d-empty t₁))
   ... | inj₂ (_ , _ , t₁ , t₂ , b₁ , b₂) = ⊥-elim (x₁ (d-τ t₁ t₂))
-  LTS-not-bisim (Game.stepS (s-q₂-τ x) (Game.stepD x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₂-τ x) (Game.stepD x₁)) (p , _) with d₂-τ p x
+  ... | inj₁ (_ , t₁ , b₁ , b₂) = ⊥-elim (LTS-not-bisim (x₁ (d-empty t₁)) (b₁ , b₂))
+  ... | inj₂ (_ , _ , t₁ , t₂ , b₁ , b₂) = ⊥-elim (LTS-not-bisim (x₁ (d-τ t₁ t₂)) (b₁ , b₂))
   LTS-not-bisim (Game.stepS (s-q₃-τ x) (Game.end x₁)) (_ , q) with d₁-τ q x
   ... | inj₁ (_ , t₁ , b₁ , b₂) = ⊥-elim (x₁ (d-empty t₁))
   ... | inj₂ (_ , _ , t₁ , t₂ , b₁ , b₂) = ⊥-elim (x₁ (d-τ t₁ t₂))
-  LTS-not-bisim (Game.stepS (s-q₃-τ x) (Game.stepD x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₃-τ x) (Game.stepD x₁)) (_ , q) with d₁-τ q x
+  ... | inj₁ (_ , t₁ , b₁ , b₂) = ⊥-elim (LTS-not-bisim (x₁ (d-empty t₁)) (b₁ , b₂))
+  ... | inj₂ (_ , _ , t₁ , t₂ , b₁ , b₂) = ⊥-elim (LTS-not-bisim (x₁ (d-τ t₁ t₂)) (b₁ , b₂))
   LTS-not-bisim (Game.stepS (s-q₄-τ x) (Game.end x₁)) (_ , q) with d₂-τ q x
   ... | inj₁ (_ , t₁ , b₁ , b₂) = ⊥-elim (x₁ (d-empty t₁))
   ... | inj₂ (_ , _ , t₁ , t₂ , b₁ , b₂) = ⊥-elim (x₁ (d-τ t₁ t₂))
-  LTS-not-bisim (Game.stepS (s-q₄-τ x) (Game.stepD x₁)) = {!!}
+  LTS-not-bisim (Game.stepS (s-q₄-τ x) (Game.stepD x₁)) (_ , q) with d₂-τ q x
+  ... | inj₁ (_ , t₁ , b₁ , b₂) = ⊥-elim (LTS-not-bisim (x₁ (d-empty t₁)) (b₁ , b₂))
+  ... | inj₂ (_ , _ , t₁ , t₂ , b₁ , b₂) = ⊥-elim (LTS-not-bisim (x₁ (d-τ t₁ t₂)) (b₁ , b₂))
