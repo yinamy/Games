@@ -99,7 +99,7 @@ record LTS : Set₁ where
   open Game LTSBisimGame
   open _≈_
 
--- If a D-winning strategy exists, a bisimulation exists between 2 states
+  -- If a D-winning strategy exists, a bisimulation exists between 2 states
   LTS-bisim : {c : BC S} (w : DWStrat S c) → proj₁ c ≈ proj₂ c
   d₁ (LTS-bisim {q₁ , q₂} (Game.end x)) = λ x₁ → ⊥-elim (x (inj₁ (_ , (_ , x₁))))
   d₂ (LTS-bisim {q₁ , q₂} (Game.end x)) = λ x₁ → ⊥-elim (x (inj₂ (_ , (_ , x₁))))
@@ -116,7 +116,7 @@ record LTS : Set₁ where
     (inj₂ (a , q , t)) → Game.stepD (_ , (proj₁ (proj₂ (z₂ t)))) (♯ (LTS-bisim₂ (proj₂ (proj₂ (z₂ t)))))
     })
 
--- If an S-winning strategy exists, a bisimulation does not exist between 2 states
+  -- If an S-winning strategy exists, a bisimulation does not exist between 2 states
   LTS-not-bisim : {c : BC S} (w : SWStrat S c) → ¬ (proj₁ c ≈ proj₂ c)
   LTS-not-bisim {q₁ , q₂} (Game.stepS (inj₁ (a , q₁′ , t)) (Game.end x)) p with d₁ p t
   ... | q₂′ , t′ , p′ = x (_ , t′)
@@ -126,6 +126,10 @@ record LTS : Set₁ where
   ... | q₂′ , t′ , p′ = LTS-not-bisim (x (_ , t′)) p′
   LTS-not-bisim {q₁ , q₂} (Game.stepS (inj₂ (a , q₂′ , t)) (Game.stepD x)) p with d₂ p t
   ... | q₁′ , t′ , p′ = LTS-not-bisim (x (_ , t′)) p′
+
+  -- If a bisimulation does not exiss between 2 states, then an S-winning strategy exists
+  LTS-not-bisim₂ : { (q₁ , q₂) : BC S} → ¬ (q₁ ≈ q₂) → SWStrat S (q₁ , q₂)
+  LTS-not-bisim₂ {q₁ , q₂} x = ?
 
 -- Instantiating our bisimulation game to a stream equivalence game
 
