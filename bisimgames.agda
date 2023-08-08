@@ -108,6 +108,14 @@ record LTS : Set₁ where
   d₂ (LTS-bisim {q₁ , q₂} (Game.stepS x)) t with x (inj₂ (_ , _ , t))
   ... | Game.stepD (q₁′ , t′) x′ = _ , t′ , LTS-bisim (♭ x′)
 
+  -- If a bisimulation exists between 2 states, then a D-winning strategy exists
+  LTS-bisim₂ : { (q₁ , q₂) : BC S} → q₁ ≈ q₂ → DWStrat S (q₁ , q₂)
+  LTS-bisim₂ {q₁ , q₂} p with d₁ p | d₂ p
+  ... | z₁ | z₂ = Game.stepS (λ {
+    (inj₁ (a , q , t)) → Game.stepD (_ , (proj₁ (proj₂ (z₁ t)))) (♯ (LTS-bisim₂ (proj₂ (proj₂ (z₁ t))))) ;
+    (inj₂ (a , q , t)) → Game.stepD {!!} {!!}
+    })
+
 -- If an S-winning strategy exists, a bisimulation does not exist between 2 states
   LTS-not-bisim : {c : BC S} (w : SWStrat S c) → ¬ (proj₁ c ≈ proj₂ c)
   LTS-not-bisim {q₁ , q₂} (Game.stepS (inj₁ (a , q₁′ , t)) (Game.end x)) p with d₁ p t
@@ -132,5 +140,3 @@ StreamLTS = record
       del : Stream ℕ → ℕ → Stream ℕ
       del (x ∷ xs) zero = ♭ xs
       del (x ∷ xs) (suc n) = x ∷ ♯ (del (♭ xs) n)
-
-open LTS StreamLTS
