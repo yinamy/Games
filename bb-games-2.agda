@@ -166,19 +166,24 @@ record LTS : Set₁ where
 
   -- If two states are branching bisimilar, then a winning strategy exists for S
   LTS-bisim₃ : {q₁ q₂ q₃ q₄ : Q} → q₁ ≈ q₂ → q₃ ≈ q₄ → DWStrat S (q₁ , q₂ , q₃ , q₄)
-  LTS-bisim₃ {q₁}{q₂} b₁ b₂ with d₁-a b₁ | d₂-a b₁ | d₁-τ b₁ | d₂-τ b₁
-    | d₁-a b₂ | d₂-a b₂ | d₁-τ b₂ | d₂-τ b₂
+  LTS-bisim₃ {q₁}{q₂} b₁ b₂ with d₁-a b₁ | d₂-a b₁ | d₁-a b₂ | d₂-a b₂ | d₁-τ b₁ | d₂-τ b₁ | d₁-τ b₂ | d₂-τ b₂
   ... | z₁ | z₂ | z₃ | z₄ | y₁ | y₂ | y₃ | y₄ = Game.stepS
     (λ { (s-q₁-a t) → Game.stepD (d-a (proj₁ (proj₂ (proj₂ (z₁ t))))
                  (proj₁ (proj₂ (proj₂ (proj₂ (z₁ t))))))
                  (♯ LTS-bisim₃ (proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (z₁ t))))))
-                 ((proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (z₁ t)))))))) ;
-         (s-q₂-a t) → Game.stepD (d-a ( (proj₁ (proj₂ (proj₂ (z₂ t)))))
-                 ((proj₁ (proj₂ (proj₂ (proj₂ (z₂ t)))))))
-                 ((♯ LTS-bisim₃ (proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (z₂ t))))))
-                 ((proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (z₂ t))))))))) ;
-         (s-q₃-a t) → {!!} ;
-         (s-q₄-a t) → {!!} ;
+                 (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (z₁ t))))))) ;
+         (s-q₂-a t) → Game.stepD (d-a ((proj₁ (proj₂ (proj₂ (z₂ t)))))
+                 (proj₁ (proj₂ (proj₂ (proj₂ (z₂ t))))))
+                 (♯ LTS-bisim₃ (proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (z₂ t))))))
+                 (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (z₂ t))))))) ;
+         (s-q₃-a t) → Game.stepD (d-a ((proj₁ (proj₂ (proj₂ (z₃ t)))))
+                 (proj₁ (proj₂ (proj₂ (proj₂ (z₃ t))))))
+                 (♯ LTS-bisim₃ (proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (z₃ t))))))
+                 (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (z₃ t))))))) ;
+         (s-q₄-a t) → Game.stepD (d-a (proj₁ (proj₂ (proj₂ (z₄ t))))
+                 (proj₁ (proj₂ (proj₂ (proj₂ (z₄ t))))))
+                 (♯ LTS-bisim₃ (proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (z₄ t))))))
+                 (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (z₄ t))))))) ;
          (s-q₁-τ t) → {!!} ;
          (s-q₂-τ t) → {!!} ;
          (s-q₃-τ t) → {!!} ;
