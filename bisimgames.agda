@@ -113,7 +113,7 @@ record LTS : Set₁ where
   LTS-bisim₂ {q₁ , q₂} p with d₁ p | d₂ p
   ... | z₁ | z₂ = Game.stepS (λ {
     (inj₁ (a , q , t)) → Game.stepD (_ , (proj₁ (proj₂ (z₁ t)))) (♯ (LTS-bisim₂ (proj₂ (proj₂ (z₁ t))))) ;
-    (inj₂ (a , q , t)) → Game.stepD {!!} {!!}
+    (inj₂ (a , q , t)) → Game.stepD (_ , (proj₁ (proj₂ (z₂ t)))) (♯ (LTS-bisim₂ (proj₂ (proj₂ (z₂ t)))))
     })
 
 -- If an S-winning strategy exists, a bisimulation does not exist between 2 states
