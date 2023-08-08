@@ -84,11 +84,8 @@ record LTS : Set₁ where
           ⊎  ∃ (λ t₁ → ∃ (λ t′ → t ⇒ t₁ × t₁ -⟨τ⟩→ t′ × (s ≈ t₁) × (s′ ≈ t′)))
       d₂-a : ∀{t′}{a}
         → t -⟨ a ⟩→ t′
-        --→ ∃ (λ s₁ → ∃ (λ s′ → s ⇒ s₁ × s₁ -⟨ a ⟩→ s′ × (s₁ ≈ t) × (s′ ≈ t′)))
         → ∃ (λ s₁ → ∃ (λ s′ → s ⇒ s₁ × s₁ -⟨ a ⟩→ s′ × (t ≈ s₁) × (t′ ≈ s′)))
       d₂-τ : ∀{t′}
-        -- → t -⟨τ⟩→ t′ → ∃ (λ s′ → s ⇒ s′ × (s′ ≈ t) × (s′ ≈ t′))
-        --  ⊎ ∃ (λ s₁ → ∃ (λ s′ → s ⇒ s₁ × s₁ -⟨τ⟩→ s′ × (s₁ ≈ t) × (s′ ≈ t′)))
         → t -⟨τ⟩→ t′ → ∃ (λ s′ → s ⇒ s′ × (t ≈ s′) × (t′ ≈ s′))
           ⊎ ∃ (λ s₁ → ∃ (λ s′ → s ⇒ s₁ × s₁ -⟨τ⟩→ s′ × (t ≈ s₁) × (t′ ≈ s′)))
 
@@ -166,6 +163,27 @@ record LTS : Set₁ where
   d₂-τ (LTS-bisim₂ (Game.stepS x)) t with x (s-q₄-τ t)
   ... | Game.stepD (d-τ x₂ x₃) x₁ = inj₂ (_ , _ , x₂ , x₃ , LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁))
   ... | Game.stepD (d-empty x₂) x₁ = inj₁ (_ , x₂ ,  LTS-bisim₁ (♭ x₁) , LTS-bisim₂ (♭ x₁))
+
+  -- If two states are branching bisimilar, then a winning strategy exists for S
+  LTS-bisim₃ : {q₁ q₂ q₃ q₄ : Q} → q₁ ≈ q₂ → q₃ ≈ q₄ → DWStrat S (q₁ , q₂ , q₃ , q₄)
+  LTS-bisim₃ {q₁}{q₂} b₁ b₂ with d₁-a b₁ | d₂-a b₁ | d₁-τ b₁ | d₂-τ b₁
+    | d₁-a b₂ | d₂-a b₂ | d₁-τ b₂ | d₂-τ b₂
+  ... | z₁ | z₂ | z₃ | z₄ | y₁ | y₂ | y₃ | y₄ = Game.stepS
+    (λ { (s-q₁-a t) → Game.stepD (d-a (proj₁ (proj₂ (proj₂ (z₁ t))))
+                 (proj₁ (proj₂ (proj₂ (proj₂ (z₁ t))))))
+                 (♯ LTS-bisim₃ (proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (z₁ t))))))
+                 ((proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (z₁ t)))))))) ;
+         (s-q₂-a t) → Game.stepD (d-a ( (proj₁ (proj₂ (proj₂ (z₂ t)))))
+                 ((proj₁ (proj₂ (proj₂ (proj₂ (z₂ t)))))))
+                 ((♯ LTS-bisim₃ (proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (z₂ t))))))
+                 ((proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (z₂ t))))))))) ;
+         (s-q₃-a t) → {!!} ;
+         (s-q₄-a t) → {!!} ;
+         (s-q₁-τ t) → {!!} ;
+         (s-q₂-τ t) → {!!} ;
+         (s-q₃-τ t) → {!!} ;
+         (s-q₄-τ t) → {!!}
+         })
 
   -- If an S-winning strategy exists, a bisimulation does not exist between 2 states
   LTS-not-bisim : {q₁ q₂ q₃ q₄ : Q} (w : SWStrat S (q₁ , q₂ , q₃ , q₄)) → ¬ (q₁ ≈ q₂ × q₃ ≈ q₄)
