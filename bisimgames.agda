@@ -127,10 +127,6 @@ record LTS : Set₁ where
   LTS-not-bisim {q₁ , q₂} (Game.stepS (inj₂ (a , q₂′ , t)) (Game.stepD x)) p with d₂ p t
   ... | q₁′ , t′ , p′ = LTS-not-bisim (x (_ , t′)) p′
 
-  -- If a bisimulation does not exiss between 2 states, then an S-winning strategy exists
-  LTS-not-bisim₂ : { (q₁ , q₂) : BC S} → ¬ (q₁ ≈ q₂) → SWStrat S (q₁ , q₂)
-  LTS-not-bisim₂ {q₁ , q₂} x = ?
-
 -- Instantiating our bisimulation game to a stream equivalence game
 
 -- A stream as an LTS
